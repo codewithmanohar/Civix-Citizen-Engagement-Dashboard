@@ -6,7 +6,10 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["citizen", "official"], required: true },
   location: { type: String, required: true },
-  verificationStatus: { type: String, enum: ["unverified", "verified"], default: "unverified" },
+  verificationStatus: { type: String, enum: ["unverified", "pending", "verified"], default: "unverified" },
+  idDocumentType: String,       // optional
+  idDocumentNumber: String,     // optional (encrypted or hashed)
+  idDocumentUrl: String         // if user uploads file
 }, { timestamps: true });
 
 

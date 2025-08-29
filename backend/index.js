@@ -1,6 +1,7 @@
 import express from "express" ;
 import dotenv from "dotenv";
 import connectDB from "./config/config.js";
+import authRoutes from "./routes/auth.route.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 4000; 
@@ -14,6 +15,8 @@ app.use(express.urlencoded({extended : true}));
 app.get("/" , (req , res) => {
     res.send("API is running...");
 } )
+
+app.use("/api/auth" , authRoutes);
 
 
 
