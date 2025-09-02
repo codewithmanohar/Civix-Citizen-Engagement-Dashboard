@@ -1,14 +1,48 @@
 import mongoose from "mongoose";
 
-const PetitionSchema = new mongoose.Schema({
-  creatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  title: { type: String, required: true, maxlength: 200 },
-  description: { type: String, required: true },
-  category: { type: String, required: true },
-  location: { type: String, required: true },
-  status: { type: String, enum: ["active", "closed"], default: "active" },
-}, { timestamps: true });
+const petitionSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150,
+    },
+    description: {
+      type: String,
+      required: true,
+      minlength: 20,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      enum: ["Public Safety", "Environment", "Education", "Healthcare", "Infrastructure", "Other"],
+      default: "Other",
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", 
+      required: true,
+    },
+    signatures: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        signedAt: { type: Date, default: Date.now },
+      },
+    ],
+    status: {
+      type: String,
+      enum: ["Open", "Closed", "Resolved"],
+      default: "Open",
+    },
+  },
+  { timestamps: true }
+);
 
 
-const PetitionModel = mongoose.model("Petition", PetitionSchema);
+
+const PetitionModel = mongoose.model("Petition", petitionSchema);
 export default PetitionModel ; 
