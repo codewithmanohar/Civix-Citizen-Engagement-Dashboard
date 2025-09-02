@@ -11,10 +11,14 @@ export const jwtAuthMiddleware = (req , res, next) => {
 
     try {
         // verify the JWT Token 
-        const decoded = jwt.verify(token, JWT_SECRET); 
+        const decoded = jwt.verify(token, JWT_SECRET, { expiresIn: "7d" }); 
 
-        // Attach user information to the request object 
-        res.user = decoded ; 
+         req.user = {
+            id: decoded.id,      
+            role: decoded.role,
+            // email: decoded.email
+        };
+        
         next();
     } catch (error) {
         console.log(error);
