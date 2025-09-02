@@ -9,9 +9,10 @@ const UserSchema = new mongoose.Schema({
   verificationStatus: { type: String, enum: ["unverified", "pending", "verified"], default: "unverified" },
   idDocumentType: String,       // optional
   idDocumentNumber: String,     // optional (encrypted or hashed)
-  idDocumentUrl: String         // if user uploads file
+  idDocumentUrl: String ,         // if user uploads file
+  otp: { type: String },// 6-digit code 
+  otpExpires: { type: Date}, // expiry timestamp
 }, { timestamps: true });
-
 
 const UserModel = mongoose.model("User", UserSchema);
 

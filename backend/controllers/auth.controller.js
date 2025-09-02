@@ -3,11 +3,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import dotenv from "dotenv";
+import { sendVerficationCode } from "../middlewares/email.js";
+import UserModel from "../models/user.js";
+import { generateOtp } from "../libs/generate.otp.js";
 dotenv.config();
 
 
 const JWT_SECRET = process.env.JWT_SECRET ; 
-// const JWT_SECRET = "ytd" ; 
+
 
 // Register new user
 export const registerUser = async (req, res) => {
@@ -101,5 +104,65 @@ export const deleteUser = async (req, res) => {
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+export const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    let user = await UserModel.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const otp = generateOtp();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min expiry
+    await user.save();
+
+    await sendVerficationCode(email, otp);
+
+    res.json({ message: "OTP sent to your email" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await UserModel.findOne({ email });
+
+    if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isEmailVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.json({ message: "Email verified successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await UserModel.findOne({ email });
+
+    if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
