@@ -11,7 +11,7 @@ export const jwtAuthMiddleware = (req , res, next) => {
 
     try {
         // verify the JWT Token 
-        const decoded = jwt.verify(token, JWT_SECRET, { expiresIn: "7d" }); 
+        const decoded = jwt.verify(token, JWT_SECRET, { expiresIn: "1d" }); 
 
          req.user = {
             id: decoded.id,      

@@ -116,7 +116,7 @@ export const sendOtp = async (req, res) => {
 
     const otp = generateOtp();
     user.otp = otp;
-    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min expiry
+    user.otpExpires = Date.now() + 1 * 60 * 1000; // 1 min expiry
     await user.save();
 
     await sendVerficationCode(email, otp);
