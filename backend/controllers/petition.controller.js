@@ -1,3 +1,4 @@
+import { queryFilter } from "../libs/query.builder.js";
 import PetitionModel from "../models/petition.js";
 import SignatureModel from "../models/signature.js";
 
@@ -137,3 +138,16 @@ export const getPetitionSignatures = async (req, res) => {
     res.status(500).json({ message: "Error fetching signatures", error: error.message });
   }
 };
+
+export const filterPetitions = async (req, res) => { 
+  try {
+    const filter = queryFilter(req.query); 
+    console.log(filter);
+    const petitions = await PetitionModel.find(filter); 
+    res.status(200).json(petitions);
+    
+  } catch (error) {
+    res.status(500).json({ message: "Error filtering petitions", error: error.message });
+    console.log(error)
+  }
+} 
