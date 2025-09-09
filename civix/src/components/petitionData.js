@@ -6,6 +6,7 @@ const petitions = [
     status: "Active",
     signatures: 0,
     target: 100,
+    signedBy: [],
     category: "Environment"
   },
   {
@@ -15,6 +16,7 @@ const petitions = [
     status: "Active",
     signatures: 0,
     target: 100,
+    signedBy: [],
     category: "Infrastructure"
   },
   {
@@ -24,6 +26,7 @@ const petitions = [
     status: "Active",
     signatures: 0,
     target: 100,
+    signedBy: [],
     category: "Environment"
   }
 ];

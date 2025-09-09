@@ -11,10 +11,11 @@ import {
 
 const Sidebar = () => {
   const location = useLocation();
+  const role = localStorage.getItem("userRole"); // ✅ get role
 
   const links = [
-    { to: "/dashboard", label: "Dashboard", icon: Home },
-    { to: "/petitions", label: "Petitions", icon: FileText },
+    { to: role === "citizen" ? "/dashboard/citizen" : "/dashboard/official", label: "Dashboard", icon: Home },
+    { to: role === "citizen" ? "/dashboard/citizen/petitions" : "/dashboard/official/petitions", label: "Petitions", icon: FileText },
     { to: "/polls", label: "Polls", icon: BarChart2 },
     { to: "/officials", label: "Officials", icon: Users },
     { to: "/reports", label: "Reports", icon: ClipboardList },
@@ -37,7 +38,7 @@ const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {links.map(({ to, label, icon: Icon }) => {
-          const isActive = location.pathname.startsWith(to);
+          const isActive = location.pathname === to;
 
           return (
             <Link
