@@ -1,0 +1,141 @@
+/* General Page */
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background-color: #eaf6ff; /* light blue background */
+  color: #333;
+  line-height: 1.6;
+
+  /* Center the form */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* App container */
+.App {
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem;
+  text-align: center; /* Center headings */
+}
+
+/* Branding */
+.brand {
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #111;
+  text-align: center;
+}
+
+/* Headings */
+.page-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.page-sub {
+  margin-bottom: 2rem;
+  color: #555;
+  text-align: center;
+}
+
+/* Form Container */
+.form-container {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: left; /* Keep labels & inputs aligned properly */
+}
+
+form label {
+  display: block;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #000; /* force black text */
+  box-sizing: border-box;
+}
+
+form input::placeholder,
+form textarea::placeholder {
+  color: #777; /* subtle gray for placeholders */
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  border-color: #0077ff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.2);
+}
+
+form small {
+  display: block;
+  margin-top: 0.4rem;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* Description Textarea */
+form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Important Info Box */
+.important-box {
+  background-color: #fff8e1;
+  border-left: 5px solid #f9c642;
+  padding: 1rem;
+  margin: 2rem 0;
+  border-radius: 8px;
+}
+
+.important-box strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.important-box p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Submit Button */
+.submit-btn {
+  background-color: #0077ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto; /* Centers the button */
+}
+
+.submit-btn:hover {
+  background-color: #005fcc;
+}
