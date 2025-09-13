@@ -17,6 +17,22 @@ export const getPetitionStats = async (req, res) => {
   }
 };
 
+// export const getPetitionCategoryStats = async (req, res) => {
+//   try {
+//     const categoryStats = await PetitionModel.aggregate([
+//       { $group: { _id: "$category", count: { $sum: 1 } } },
+//       { $sort: { count: -1 } },
+//     ]);
+
+//     res.status(200).json({
+//       success: true,
+//       categoryStats,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
 export const getPetitionCategoryStats = async (req, res) => {
   try {
     const categoryStats = await PetitionModel.aggregate([
@@ -24,9 +40,14 @@ export const getPetitionCategoryStats = async (req, res) => {
       { $sort: { count: -1 } },
     ]);
 
+    // Split into labels & data arrays
+    const labels = categoryStats.map(item => item._id);
+    const data = categoryStats.map(item => item.count);
+
     res.status(200).json({
       success: true,
-      categoryStats,
+      labels,
+      data,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -39,7 +60,7 @@ export const getRecentPetitions = async (req, res) => {
     const recent = await PetitionModel.find()
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("title category status createdAt");
+      .select("title status ").populate("createdBy" , "name").populate("signatures");
 
     res.status(200).json({
       success: true,
