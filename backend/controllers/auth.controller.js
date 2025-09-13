@@ -107,7 +107,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;

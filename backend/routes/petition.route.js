@@ -1,6 +1,6 @@
 import express from "express"; 
 import { jwtAuthMiddleware } from "../middlewares/auth.js";
-import { createPetition, deletePetition, filterPetitions, getAllPetitions, getPetitionById, getPetitionSignatures, signPetition, updatePetition } from "../controllers/petition.controller.js";
+import { createPetition, deletePetition, filterPetitions, getAllPetitions, getPetitionById, getPetitionSignatures, signPetition, updatePetition, updatePetitionStatus } from "../controllers/petition.controller.js";
 import { roleCheck } from "../middlewares/role.js";
 
 
@@ -29,7 +29,9 @@ router.post("/sign/:id", jwtAuthMiddleware , signPetition);
 router.get("/signature/:id", jwtAuthMiddleware, getPetitionSignatures);
 
 // Delete Petition
-router.delete("/delete" , jwtAuthMiddleware , roleCheck , deletePetition); 
+router.delete("/delete/:id" , jwtAuthMiddleware , roleCheck , deletePetition); 
 
+// Update Status Petition
+router.put("/petition/:petitionId/status", jwtAuthMiddleware, roleCheck, updatePetitionStatus);
 
 export default router ; 

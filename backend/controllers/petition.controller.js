@@ -151,3 +151,34 @@ export const filterPetitions = async (req, res) => {
     console.log(error)
   }
 } 
+
+export const updatePetitionStatus = async (req, res) => {
+  try {
+    const { petitionId } = req.params;
+    const { status } = req.body;
+
+    // Allowed statuses
+    const validStatuses = ["Open", "Closed", "Resolved" ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status provided" });
+    }
+
+    const petition = await PetitionModel.findByIdAndUpdate(
+      petitionId,
+      { status },
+      { new: true }
+    );
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    res.status(200).json({
+      message: "Petition status updated successfully",
+      petition,
+    });
+  } catch (error) {
+    console.error("Error updating petition status:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

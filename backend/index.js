@@ -4,6 +4,7 @@ import connectDB from "./config/config.js";
 import authRoutes from "./routes/auth.route.js";
 import verifyRoutes from './routes/verify.route.js';
 import petitionRoutes from './routes/petition.route.js';
+import dashboardRoutes from "./routes/dashboard.route.js"
 import cors from "cors"
 
 
@@ -28,6 +29,8 @@ app.use("/api/auth" , authRoutes);
 app.use("/api/verify" , verifyRoutes);
 
 app.use("/api/petition" , petitionRoutes);
+
+app.use('/api/dashboard', dashboardRoutes);
 
 
 
