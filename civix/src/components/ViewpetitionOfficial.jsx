@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPetitionById } from "../lib/petitionService";
 
-const OfficialPetitionView = () => {
+const ViewPetitionOfficial = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -105,7 +105,33 @@ const OfficialPetitionView = () => {
       )}
 
       {/* Comments */}
-     
+      <div className="mb-6">
+        <h2 className="font-semibold mb-2">Comments</h2>
+        <div className="space-y-3 mb-3">
+          {comments.map((c) => (
+            <div key={c.id} className="p-2 border rounded bg-gray-50">
+              <p className="text-sm font-medium">{c.user}</p>
+              <p className="text-sm">{c.text}</p>
+              <span className="text-xs text-gray-400">{c.time}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
+            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={handleAddComment}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Post
+          </button>
+        </div>
+      </div>
 
       {/* Updates (Officials can always post updates) */}
       <div className="mb-6">
@@ -137,49 +163,8 @@ const OfficialPetitionView = () => {
           </button>
         </div>
       </div>
-      {/* Share */}
-<div>
-  <h2 className="font-semibold mb-2">Share:</h2>
-  <div className="flex gap-3">
-    {/* Facebook */}
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-    >
-      Facebook
-    </a>
-
-    {/* Twitter */}
-    <a
-      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(petition.title)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600"
-    >
-      Twitter
-    </a>
-
-    {/* Email */}
-    <a
-  href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
-    "Check out this petition!"
-  )}&body=${encodeURIComponent(
-    (petition.title || "Interesting petition") + " - " + window.location.href
-  )}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
->
-  Email
-</a>
-
-
-  </div>
-    </div>
     </div>
   );
 };
 
-export default OfficialPetitionView;
+export default ViewPetitionOfficial;

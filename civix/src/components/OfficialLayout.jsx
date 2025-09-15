@@ -4,11 +4,18 @@ import OfficialSidebar from "./OfficialSidebar";
 
 export default function OfficialLayout() {
   return (
-    <div className="flex h-screen bg-gray-50">
-      <OfficialSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <Outlet /> {/* This will render the nested page */}
-      </main>
+    <div className="flex w-full">
+      {/* Sticky Sidebar */}
+      <div className="w-64 bg-white border-r shadow-sm sticky top-0 self-start h-fit">
+        <OfficialSidebar />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 min-h-screen">
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet /> {/* Render nested routes here */}
+        </main>
+      </div>
     </div>
   );
 }
