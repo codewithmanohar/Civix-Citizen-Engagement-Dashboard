@@ -1,15 +1,17 @@
 import express from "express";
 import { registerUser, loginUser, getUsers, getUserById, updateUser, deleteUser, sendOtp, verifyOtp, resetPassword } from "../controllers/auth.controller.js";
+import { jwtAuthMiddleware } from "../middlewares/auth.js";
+import { roleCheck } from "../middlewares/role.js";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.get("/",getUsers);
-router.get("/:id",getUserById);
-router.put("/:id",updateUser);
-router.delete("/:id", deleteUser);
-router.post("/send-otp", sendOtp);
+router.get("/users", jwtAuthMiddleware, roleCheck , getUsers);
+router.get("/user/:id", jwtAuthMiddleware, getUserById);
+router.put("/user/:id", jwtAuthMiddleware,  updateUser);
+router.delete("/user/:id", jwtAuthMiddleware , roleCheck , deleteUser);
+router.post("/send-otp",  sendOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);
 

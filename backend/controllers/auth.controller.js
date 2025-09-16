@@ -51,7 +51,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "4h" }
     );
 
     res.json({ message: "Login successful", token, user });
@@ -107,7 +107,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -116,7 +115,7 @@ export const sendOtp = async (req, res) => {
 
     const otp = generateOtp();
     user.otp = otp;
-    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min expiry
+    user.otpExpires = Date.now() + 1 * 60 * 1000; // 1 min expiry
     await user.save();
 
     await sendVerficationCode(email, otp);
