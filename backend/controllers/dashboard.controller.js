@@ -3,14 +3,14 @@ import PetitionModel from "../models/petition.js";
 export const getPetitionStats = async (req, res) => {
   try {
     const total = await PetitionModel.countDocuments();
-    const pending = await PetitionModel.countDocuments({ status: "Pending" });
-    const approved = await PetitionModel.countDocuments({ status: "Approved" });
+    const active = await PetitionModel.countDocuments({ status: "Active" });
+    const under_review = await PetitionModel.countDocuments({ status: "Under Review" });
     const rejected = await PetitionModel.countDocuments({ status: "Rejected" });
     const resolved = await PetitionModel.countDocuments({ status: "Resolved" });
 
     res.status(200).json({
       success: true,
-      stats: { total, pending, approved, rejected, resolved },
+      stats: { total, under_review, active, rejected, resolved },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -70,3 +70,4 @@ export const getRecentPetitions = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

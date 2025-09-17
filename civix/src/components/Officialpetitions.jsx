@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import OfficialPendingPetitions from "./OfficialPendingPetitions";
-import OfficialApprovedPetitions from "./OfficialApprovedPetitions";
+import OfficialPendingPetitions from "./OfficialActivePetitions";
+import OfficialApprovedPetitions from "./OfficialUnderReviewPetitions";
 import api from "../lib/api";
 
 export default function OfficialPetitionsDashboard() {

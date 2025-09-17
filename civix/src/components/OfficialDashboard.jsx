@@ -13,7 +13,7 @@ export default function OfficialDashboard() {
 
   const [stats, setStats] = useState({
     totalPetitions: 0,
-    pendingApprovals: 0,
+    underReview: 0,
     resolvedIssues: 0,
     rejectedPetition: 0,
   });
@@ -40,10 +40,10 @@ export default function OfficialDashboard() {
 
   const getStats = async () => {
     const response = await api.get("/dashboard/petition-stats");
-    const { total, pending, resolved, rejected } = response.data.stats;
+    const { total, under_review, resolved, rejected } = response.data.stats;
     setStats({
       totalPetitions: total,
-      pendingApprovals: pending,
+      underReview: under_review,
       resolvedIssues: resolved,
       rejectedPetition: rejected,
     });
@@ -103,7 +103,7 @@ export default function OfficialDashboard() {
 
   const statItems = [
     { label: "Total Petitions", value: stats.totalPetitions },
-    { label: "Pending Approvals", value: stats.pendingApprovals },
+    { label: "Under Review", value: stats.underReview },
     { label: "Resolved Issues", value: stats.resolvedIssues },
     { label: "Rejected Petitions", value: stats.rejectedPetition },
   ];

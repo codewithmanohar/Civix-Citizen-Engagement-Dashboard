@@ -88,6 +88,7 @@ export const signPetition = async (req, res) => {
   try {
     const petitionId = req.params.id;
     const userId = req.user.id; 
+    const { name, comment } = req.body;
 
     const petition = await PetitionModel.findById(petitionId);
     if (!petition) {
@@ -99,22 +100,20 @@ export const signPetition = async (req, res) => {
       return res.status(400).json({ message: "You cannot sign your own petition" });
     }
 
-    // Prevent multiple signatures by same user
-    const alreadySigned = petition.signatures.some(
-      (s) => s.user.toString() === userId
-    );
-    if (alreadySigned) {
-      return res.status(400).json({ message: "You have already signed this petition" });
-    }
-
-    // Prevent duplicate signatures 
+    // Prevent duplicate signatures (index also enforces this at DB level)
     const existingSignature = await SignatureModel.findOne({ petitionId, userId });
     if (existingSignature) {
       return res.status(400).json({ message: "You have already signed this petition" });
     }
 
-    // Create new signature
-    const signature = new SignatureModel({ petitionId, userId });
+    // Create new signature with name + comment
+    const signature = new SignatureModel({
+      petitionId,
+      userId,
+      name,
+      comment,
+    });
+
     await signature.save();
 
     res.status(201).json({
@@ -125,6 +124,7 @@ export const signPetition = async (req, res) => {
     res.status(500).json({ message: "Error signing petition", error: error.message });
   }
 };
+
 
 export const getPetitionSignatures = async (req, res) => {
   try {
@@ -158,7 +158,7 @@ export const updatePetitionStatus = async (req, res) => {
     const { status } = req.body;
 
     // Allowed statuses
-    const validStatuses = ["Open", "Closed", "Resolved" ];
+    const validStatuses = ["Active", "Under Review", "Resolved" , "Rejected" ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status provided" });
     }
@@ -175,10 +175,40 @@ export const updatePetitionStatus = async (req, res) => {
 
     res.status(200).json({
       message: "Petition status updated successfully",
-      petition,
     });
   } catch (error) {
     console.error("Error updating petition status:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+export const getMySignedPetitions = async (req, res) => {
+  try {
+    const userId = req.user.id; // comes from JWT middleware
+
+    // Find all signatures by this user
+    const signatures = await SignatureModel.find({ userId }).populate("petitionId");
+
+    if (!signatures.length) {
+      return res.status(200).json({
+        message: "You have not signed any petitions yet.",
+        petitions: [],
+      });
+    }
+
+    // Extract petitions from signatures
+    const petitions = signatures.map((sig) => sig.petitionId);
+
+    res.status(200).json({
+      message: "Signed petitions fetched successfully",
+      total: petitions.length,
+      petitions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching signed petitions",
+      error: error.message,
+    });
   }
 };

@@ -20,8 +20,8 @@ import CitizenDashboard from "./components/CitizenDashboard";
 import PetitionPage from "./components/PetitionPage";
 import CreatePetition from "./components/CreatePetition";
 import OfficialDashboard from "./components/OfficialDashboard";
-import OfficialPendingPetitions from "./components/OfficialPendingPetitions";
-import OfficialApprovedPetitions from "./components/OfficialApprovedPetitions";
+import OfficialActivePetitions from "./components/OfficialActivePetitions";
+import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";
 import OfficialPetitionView from "./components/OfficialPetitionView";
 import OfficialLayout from "./components/OfficialLayout";
@@ -50,16 +50,16 @@ export default function App() {
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
 
-   // ✅ When a petition is signed
+  // ✅ When a petition is signed
   const handleSignPetition = (id, signer) => {
     setPetitions((prev) =>
       prev.map((petition) =>
         petition.id === id
           ? {
-              ...petition,
-              signatures: petition.signatures + 1,
-              signedBy: [...(petition.signedBy || []), signer],
-            }
+            ...petition,
+            signatures: petition.signatures + 1,
+            signedBy: [...(petition.signedBy || []), signer],
+          }
           : petition
       )
     );
@@ -78,7 +78,7 @@ export default function App() {
   const shouldHideNavbar = hideNavbarPrefixes.some((p) =>
     location.pathname.startsWith(p)
   );
-  const hideFooterOnHome = location.pathname === "/" ||  location.pathname.startsWith("/dashboard/official")|| location.pathname.startsWith("/dashboard/citizen");
+  const hideFooterOnHome = location.pathname === "/" || location.pathname.startsWith("/dashboard/official") || location.pathname.startsWith("/dashboard/citizen");
 
   const isDashboard = location.pathname.startsWith("/dashboard");
 
@@ -86,9 +86,8 @@ export default function App() {
     <div className="flex flex-col min-h-screen bg-blue-50">
       {!shouldHideNavbar && <Navbar />}
       <div
-        className={`flex-grow w-full ${
-          isDashboard ? "" : "max-w-screen-xl mx-auto"
-        }`}
+        className={`flex-grow w-full ${isDashboard ? "" : "max-w-screen-xl mx-auto"
+          }`}
       >
         <Routes>
           {/* Public */}
@@ -133,9 +132,9 @@ export default function App() {
                       element={<SignPetition onSign={handleSignPetition} />}
                     />
                     <Route
-               path="view/:id"
-             element={<ViewPetition />}
-                  />
+                      path="view/:id"
+                      element={<ViewPetition />}
+                    />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -155,13 +154,13 @@ export default function App() {
             <Route
               path="petitions/pending"
               element={
-                <OfficialPendingPetitions addToApproved={addToApproved} />
+                <OfficialActivePetitions addToApproved={addToApproved} />
               }
             />
             <Route
               path="petitions/approved"
               element={
-                <OfficialApprovedPetitions
+                <OfficialUnderReviewPetitions
                   approvedPetitions={approvedPetitions}
                 />
               }
@@ -183,14 +182,14 @@ export default function App() {
               }
             />
           </Route>
-          
+
           {/* Polls */}
           {/* Polls */}
-<Route element={<Layout />}>
-  <Route path="/polls" element={<CivixPollsPage />} />
-  <Route path="/polls/create" element={<PollCreationPage />} />
-  <Route path="/polls/:id" element={<PollVotingPage />} />
-</Route>
+          <Route element={<Layout />}>
+            <Route path="/polls" element={<CivixPollsPage />} />
+            <Route path="/polls/create" element={<PollCreationPage />} />
+            <Route path="/polls/:id" element={<PollVotingPage />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

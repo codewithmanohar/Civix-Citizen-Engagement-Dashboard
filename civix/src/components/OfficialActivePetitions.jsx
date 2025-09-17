@@ -3,32 +3,32 @@ import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
 
-export default function OfficialPendingPetitions({ onApprove }) {
-  const [pendingPetitions, setPendingPetitions] = useState([]);
+export default function OfficialActivePetitions({ onApprove }) {
+  const [activePetitions, setActivePetition] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch pending petitions
-  const getPendingPetitions = async () => {
+  const getActivePetitions = async () => {
     try {
       setLoading(true);
       const response = await api.get("/petition");
       if (response.data) {
-        const pending = response.data.filter((p) => p.status === "Pending");
-        setPendingPetitions(pending);
+        const activePetitions = response.data.filter((p) => p.status === "Active");
+        setActivePetition(activePetitions);
       }
     } catch (err) {
-      console.error("Error fetching pending petitions:", err);
+      console.error("Error fetching active petitions:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getPendingPetitions();
+    getActivePetitions();
   }, []);
 
-  const filteredPetitions = pendingPetitions.filter((p) =>
+  const filteredPetitions = activePetitions.filter((p) =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -36,13 +36,13 @@ export default function OfficialPendingPetitions({ onApprove }) {
   const handleApprove = async (id) => {
     try {
       const response = await api.put(`/petition/petition/${id}/status`, {
-        status: "Active", // Active = Approved
+        status: "Under Review", 
       });
 
       if (response.data) {
         // Remove from Pending list
-        const approvedPetition = pendingPetitions.find((p) => p._id === id);
-        setPendingPetitions((prev) => prev.filter((p) => p._id !== id));
+        const approvedPetition = activePetitions.find((p) => p._id === id);
+        setActivePetition((prev) => prev.filter((p) => p._id !== id));
 
         // Notify parent (Approved table) to add this petition
         if (onApprove) onApprove({ ...approvedPetition, status: "Active" });
@@ -56,7 +56,7 @@ export default function OfficialPendingPetitions({ onApprove }) {
   const handleReject = async (id) => {
     try {
       await api.put(`/petition/petition/${id}/status`, { status: "Rejected" });
-      setPendingPetitions((prev) => prev.filter((p) => p._id !== id));
+      setActivePetition((prev) => prev.filter((p) => p._id !== id));
     } catch (err) {
       console.error("Error rejecting petition:", err);
     }
@@ -66,7 +66,7 @@ export default function OfficialPendingPetitions({ onApprove }) {
     <div className="w-full bg-blue-50 p-6">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-700">Pending Petitions</h1>
+          <h1 className="text-3xl font-bold text-blue-700">Active Petitions</h1>
           <div className="relative">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
@@ -135,7 +135,7 @@ export default function OfficialPendingPetitions({ onApprove }) {
               ) : (
                 <tr>
                   <td colSpan="6" className="text-center p-4 text-gray-500">
-                    No pending petitions
+                    No active petitions
                   </td>
                 </tr>
               )}

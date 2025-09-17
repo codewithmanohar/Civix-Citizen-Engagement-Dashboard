@@ -80,28 +80,13 @@ export const getPetitionById = async (id) => {
 };
 
 // Sign a petition
-/*export const signPetition = async (id) => {
+export const signPetition = async (id, { name, comment }) => {
   const token = localStorage.getItem("authToken");
   if (!token) throw new Error("No JWT token found. Please login.");
 
-  const res = await axios.post(
-    `${API_URL}/sign/${id}`,
-    {},
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const res = await api.post(`petition/sign/${id}`,{ name, comment });
+
   return res.data;
-};*/
-// petitionService.jsx
-export const signPetition = async (id) => {
-  const token = localStorage.getItem("authToken");
-  if (!token) throw new Error("No JWT token found. Please login.");
-
-  const res = await axios.post(
-    `${API_URL}/sign/${id}`,
-    {}, // <-- send data (name, comment, anonymous)
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data; // { message, signature, petition, total }
 };
 
 

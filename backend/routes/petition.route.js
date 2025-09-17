@@ -1,6 +1,6 @@
 import express from "express"; 
 import { jwtAuthMiddleware } from "../middlewares/auth.js";
-import { createPetition, deletePetition, filterPetitions, getAllPetitions, getPetitionById, getPetitionSignatures, signPetition, updatePetition, updatePetitionStatus } from "../controllers/petition.controller.js";
+import { createPetition, deletePetition, filterPetitions, getAllPetitions, getMySignedPetitions, getPetitionById, getPetitionSignatures, signPetition, updatePetition, updatePetitionStatus } from "../controllers/petition.controller.js";
 import { roleCheck } from "../middlewares/role.js";
 
 
@@ -15,6 +15,8 @@ router.get("/" , jwtAuthMiddleware,  getAllPetitions);
 // Filter Petitions
 router.get("/filter" , jwtAuthMiddleware , filterPetitions);
 
+// get sign petition by Id 
+router.get("/my-signed", jwtAuthMiddleware, getMySignedPetitions);
 
 // Get Petition By ID
 router.get("/:id" , jwtAuthMiddleware , getPetitionById);
@@ -32,6 +34,8 @@ router.get("/signature/:id", jwtAuthMiddleware, getPetitionSignatures);
 router.delete("/delete/:id" , jwtAuthMiddleware , roleCheck , deletePetition); 
 
 // Update Status Petition
-router.put("/petition/:petitionId/status", jwtAuthMiddleware, updatePetitionStatus);
+router.put("/petition/:petitionId/status", jwtAuthMiddleware, roleCheck , updatePetitionStatus);
+
+
 
 export default router ; 

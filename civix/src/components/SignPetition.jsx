@@ -1,39 +1,31 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { signPetition } from "../lib/petitionService";
 
 export default function SignPetition({ onSign }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(localStorage.name || "");
   const [anonymous, setAnonymous] = useState(false);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
 
-  const handleSign = (e) => {
-    e.preventDefault();
+const handleSign = async (e) => {
+  e.preventDefault();
 
-    if (!anonymous && name.trim() === "") {
-      setError("Please enter your name or sign anonymously.");
-      return;
+  try {
+    const res = await signPetition(id, { name, comment }); // ✅ correct usage
+
+    if (res) {
+      alert("Thank you! You have successfully signed this petition.");
+      navigate("/dashboard/citizen/petitions");
     }
+  } catch (error) {
+    setError(error.response?.data?.message || "Error signing petition");
+  }
+};
 
-    setError("");
-
-    // Call back to PetitionPage to update state
-    onSign(parseInt(id), anonymous ? "Anonymous" : name);
-
-    const signedData = {
-      petitionId: id,
-      name: anonymous ? "Anonymous" : name,
-      comment,
-      timestamp: new Date().toISOString(),
-    };
-    console.log("Petition Signed ✅:", signedData);
-
-    alert("Thank you! You have successfully signed this petition.");
-    navigate("/dashboard/citizen/petitions");
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -48,19 +40,20 @@ export default function SignPetition({ onSign }) {
               type="text"
               placeholder="Your Name"
               value={name}
+              disabled
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
             />
           )}
 
-          <label className="flex items-center gap-2 text-sm">
+          {/* <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={anonymous}
-              onChange={(e) => setAnonymous(e.target.checked)}
+              onChange={(e) => setName("anonymous")}
             />
             Sign anonymously
-          </label>
+          </label> */}
 
           <textarea
             placeholder="Add a comment (optional)"

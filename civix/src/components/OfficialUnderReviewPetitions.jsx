@@ -3,15 +3,15 @@ import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
 
-export default function OfficialApprovedPetitions({ approvedPetitions: dynamicApproved }) {
+export default function OfficialUnderReviewPetitions({ approvedPetitions: dynamicApproved }) {
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const getApprovedPetitions = async () => {
+  const getUnderReviewPetitions = async () => {
     try {
       const response = await api.get("/petition");
       if (response.data) {
-        const approved = response.data.filter((p) => p.status === "Active");
+        const approved = response.data.filter((p) => p.status === "Under Review");
         setApprovedPetitions(approved);
       }
     } catch (err) {
@@ -20,7 +20,7 @@ export default function OfficialApprovedPetitions({ approvedPetitions: dynamicAp
   };
 
   useEffect(() => {
-    getApprovedPetitions();
+    getUnderReviewPetitions();
   }, []);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function OfficialApprovedPetitions({ approvedPetitions: dynamicAp
                     <td className="p-3">{p.signatures?.length || 0}</td>
                     <td className="p-3">{new Date(p.createdAt).toLocaleDateString()}</td>
                     <td className="p-3">
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium">
                         {p.status}
                       </span>
                     </td>

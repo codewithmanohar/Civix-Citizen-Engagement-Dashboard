@@ -35,8 +35,8 @@ const petitionSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["Open", "Pending", "Resolved" , "Rejected"],
-      default: "Open",
+      enum: ["Active", "Under Review", "Resolved" , "Rejected"],
+      default: "Active",
     },
   },
   { timestamps: true }
