@@ -41,4 +41,7 @@ const PetitionCard = ({ petition }) => {
   );
 };
 
+
+
+
 export default PetitionCard;

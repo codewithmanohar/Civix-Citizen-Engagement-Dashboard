@@ -59,7 +59,7 @@ export const getRecentPetitions = async (req, res) => {
   try {
     const recent = await PetitionModel.find()
       .sort({ createdAt: -1 })
-      .limit(10)
+      .limit(5)
       .select("title status ").populate("createdBy" , "name").populate("signatures");
 
     res.status(200).json({

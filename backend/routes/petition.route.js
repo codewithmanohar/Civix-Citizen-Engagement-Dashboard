@@ -10,10 +10,10 @@ const router = express.Router();
 router.post("/create" , jwtAuthMiddleware , createPetition); 
 
 // Get All Petitions
-router.get("/" , jwtAuthMiddleware, roleCheck , getAllPetitions); 
+router.get("/" , jwtAuthMiddleware,  getAllPetitions); 
 
 // Filter Petitions
-router.get("/filter" , jwtAuthMiddleware , roleCheck , filterPetitions);
+router.get("/filter" , jwtAuthMiddleware , filterPetitions);
 
 
 // Get Petition By ID
@@ -32,6 +32,6 @@ router.get("/signature/:id", jwtAuthMiddleware, getPetitionSignatures);
 router.delete("/delete/:id" , jwtAuthMiddleware , roleCheck , deletePetition); 
 
 // Update Status Petition
-router.put("/petition/:petitionId/status", jwtAuthMiddleware, roleCheck, updatePetitionStatus);
+router.put("/petition/:petitionId/status", jwtAuthMiddleware, updatePetitionStatus);
 
 export default router ; 

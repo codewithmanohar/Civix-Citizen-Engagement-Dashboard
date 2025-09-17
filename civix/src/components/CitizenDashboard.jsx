@@ -15,6 +15,7 @@ const CitizenDashboard = () => {
   });
 
   const [petitions, setPetitions] = useState([]);
+  const [nearbyPetition, setNearByPetition] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // --- Fetch Profile ---
@@ -49,6 +50,14 @@ const CitizenDashboard = () => {
       try {
         const data = await getAllPetitions();
         setPetitions(data);
+        const response = await api.get(`petition/filter?location=${user.location}`, {
+          headers: {
+                Authorization: `Bearer ${user.token}`, // 👈 attach token here
+              },
+        });
+        setNearByPetition(response.data);
+        console.log(response)
+        
       } catch (err) {
         console.error("Failed to load petitions:", err);
       } finally {
@@ -71,16 +80,32 @@ const CitizenDashboard = () => {
   const normalize = (str) => (str || "").trim().toLowerCase();
 
   // --- Filter active petitions near user + category ---
+  // const activePetitions = petitions.filter(p => {
+  //   const petitionLocation = (p.location || "").toLowerCase().trim();
+  //   const userLoc = (user.location || "").toLowerCase().trim();
+  //   const matchesLocation = petitionLocation.includes(userLoc); // partial match
+  //   const matchesCategory =
+  //     selectedCategory === "All Categories"
+  //       ? true
+  //       : normalize(p.category) === normalize(selectedCategory);
+  //   return matchesLocation && matchesCategory;
+  // });
+
   const activePetitions = petitions.filter(p => {
-    const petitionLocation = (p.location || "").toLowerCase().trim();
-    const userLoc = (user.location || "").toLowerCase().trim();
-    const matchesLocation = petitionLocation.includes(userLoc); // partial match
-    const matchesCategory =
-      selectedCategory === "All Categories"
-        ? true
-        : normalize(p.category) === normalize(selectedCategory);
-    return matchesLocation && matchesCategory;
-  });
+  const petitionLocation = (p.location || "").toLowerCase().trim();
+  const userLoc = (user.location || "").toLowerCase().trim();
+  const matchesLocation = petitionLocation.includes(userLoc);
+
+  const matchesCategory =
+    selectedCategory === "All Categories"
+      ? true
+      : normalize(p.category) === normalize(selectedCategory);
+
+  const isActive = ["Open", "Pending"].includes(p.status); // <-- important
+
+  return matchesLocation && matchesCategory && isActive;
+});
+
 
   return (
     <div className="flex-1 flex flex-col p-6 bg-blue-50 min-h-screen">
@@ -149,20 +174,37 @@ const CitizenDashboard = () => {
           ))}
         </div>
 
-        {/* Petition List */}
-        {loading ? (
-          <p className="text-center text-blue-700">Loading petitions...</p>
-        ) : activePetitions.length === 0 ? (
-          <div className="text-center text-blue-700 py-10">
-            <p>No petitions found with the current filters.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activePetitions.map((petition) => (
-              <PetitionCard key={petition._id} petition={petition} />
-            ))}
-          </div>
-        )}
+       {/* Petition List */}
+{loading ? (
+  <p className="text-center text-blue-700">Loading petitions...</p>
+) : (() => {
+    const filteredPetitions = nearbyPetition.filter((p) =>
+      selectedCategory === "All Categories"
+        ? true
+        : (p.category || "").toLowerCase().trim() ===
+          selectedCategory.toLowerCase().trim()
+    );
+
+    if (filteredPetitions.length === 0) {
+      return (
+        <div className="text-center text-blue-700 py-10">
+          <p>
+            No petitions found in{" "}
+            <span className="font-semibold">{selectedCategory}</span>.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filteredPetitions.map((petition) => (
+          <PetitionCard key={petition._id} petition={petition} />
+        ))}
+      </div>
+    );
+  })()}
+
       </section>
     </div>
   );

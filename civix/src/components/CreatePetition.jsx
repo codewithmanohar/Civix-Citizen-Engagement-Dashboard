@@ -64,20 +64,7 @@ export default function CreatePetition() {
             />
           </div>
 
-          {/* Change */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">
-              Change
-            </label>
-            <input
-              type="text"
-              name="change"
-              value={form.change}
-              onChange={handleChange}
-              placeholder="State the change you want to see"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
-            />
-          </div>
+         
 
           {/* Category */}
           <div>
@@ -116,7 +103,7 @@ export default function CreatePetition() {
           </div>
 
           {/* Location */}
-          <div>
+          <div  className="col-span-2" >
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Location
             </label>
