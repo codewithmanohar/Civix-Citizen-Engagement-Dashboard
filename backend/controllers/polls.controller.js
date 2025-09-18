@@ -1,4 +1,5 @@
 import Poll from "../models/polls.js";
+import vote from "../models/vote.js";
 
 export const createPoll = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ export const createPoll = async (req, res) => {
     const poll = new Poll({
       title,
       options: options.map((opt) => ({ optionText: opt })),
-      createdBy: req.user.id, // assuming JWT middleware adds user
+      createdBy: req.user.id, 
       targetLocation,
     });
 
@@ -27,7 +28,7 @@ export const createPoll = async (req, res) => {
 
 export const getPolls = async (req, res) => {
   try {
-    const polls = await Poll.find().populate("createdBy", "name email");
+    const polls = await Poll.find();
     res.status(200).json(polls);
   } catch (error) {
     res.status(500).json({ message: "Error fetching polls", error: error.message });
@@ -44,5 +45,33 @@ export const getPollById = async (req, res) => {
     res.status(200).json(poll);
   } catch (error) {
     res.status(500).json({ message: "Error fetching poll", error: error.message });
+  }
+};
+
+export const deletePoll = async (req, res) => {
+  try {
+    const pollId = req.params.id;
+    const userId = req.user.id;
+    const userRole = req.user.role; // "citizen", "official"
+
+    const poll = await Poll.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
+
+    // Only poll creator or an official can delete
+    if (poll.createdBy.toString() !== userId && userRole !== "official") {
+      return res.status(403).json({ message: "You are not authorized to delete this poll" });
+    }
+
+    // Delete poll
+    await Poll.findByIdAndDelete(pollId);
+
+    // Optional: Clean up related votes
+    await vote.deleteMany({ pollId });
+
+    res.status(200).json({ message: "Poll deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting poll", error: error.message });
   }
 };
