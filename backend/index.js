@@ -14,7 +14,11 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // allowed methods
+  credentials: true, // if you use cookies or authentication headers
+}));
 
 app.get("/" , (req , res) => {
     res.send("API is running...");

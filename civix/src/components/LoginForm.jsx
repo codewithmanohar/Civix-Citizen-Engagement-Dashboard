@@ -18,6 +18,7 @@ export default function LoginForm({ onForgotPassword, onSwitchToRegister, mode =
     localStorage.setItem("authToken", token);
     localStorage.setItem("userRole", user.role); // ✅ role is inside user object
     localStorage.setItem("name", user.name);
+    localStorage.setItem("userEmail", user.email || email); // Store user email for petition tracking
     toast.success("Login successful! 🎉");
     if (user.role === "official") {
       navigate("/dashboard/official");

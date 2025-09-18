@@ -93,9 +93,59 @@ export default function CreatePetition() {
     </div>
   );
 }*/
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function CreatePetition() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    title: "",
+    change: "",
+    category: "",
+    signatureGoal: 100,
+    description: ""
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const currentUser = localStorage.getItem("userEmail") || "current.user@example.com";
+    
+    const newPetition = {
+      id: Date.now(),
+      title: formData.title,
+      description: formData.description,
+      status: "Active",
+      signatures: 0,
+      target: parseInt(formData.signatureGoal),
+      signedBy: [],
+      category: formData.category,
+      location: "San Diego",
+      createdBy: currentUser,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    
+    // Add to localStorage
+    const existingPetitions = JSON.parse(localStorage.getItem('petitions') || '[]');
+    const updatedPetitions = [...existingPetitions, newPetition];
+    localStorage.setItem('petitions', JSON.stringify(updatedPetitions));
+    
+    // Trigger update event
+    window.dispatchEvent(new Event('petitionsUpdated'));
+    
+    toast.success("Petition created successfully!");
+    navigate("/dashboard/citizen/petitions");
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       <div className="bg-white shadow-xl rounded-2xl w-full max-w-5xl p-8 border border-gray-300">
@@ -103,7 +153,7 @@ export default function CreatePetition() {
           Create a New Petition
         </h1>
 
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
           {/* Petition Title */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-800 mb-1">
@@ -111,11 +161,13 @@ export default function CreatePetition() {
             </label>
             <input
               type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
               placeholder="Give your petition a clear, specific title"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 
              focus:border-blue-200 focus:ring-0"
-      
-
+              required
             />
           </div>
 
@@ -126,9 +178,13 @@ export default function CreatePetition() {
             </label>
             <input
               type="text"
+              name="change"
+              value={formData.change}
+              onChange={handleInputChange}
               placeholder="State the change you want to see"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 
              focus:border-blue-200 focus:ring-0"
+              required
             />
           </div>
 
@@ -137,7 +193,13 @@ export default function CreatePetition() {
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Category
             </label>
-            <select className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-blue-500">
+            <select 
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-blue-500"
+              required
+            >
               <option value="">Select a category</option>
               <option value="Environment">Environment</option>
               <option value="Education">Education</option>
@@ -155,9 +217,13 @@ export default function CreatePetition() {
             </label>
             <input
               type="number"
-              defaultValue={100}
+              name="signatureGoal"
+              value={formData.signatureGoal}
+              onChange={handleInputChange}
+              min="1"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 
              focus:border-blue-200 focus:ring-0"
+              required
             />
           </div>
 
@@ -168,9 +234,13 @@ export default function CreatePetition() {
             </label>
             <textarea
               rows="3"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
               placeholder="Explain the issue, why it matters, and what action you want"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 
              focus:border-blue-200 focus:ring-0 resize-none"
+              required
             />
           </div>
 

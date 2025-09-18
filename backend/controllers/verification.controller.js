@@ -24,7 +24,7 @@ export const requestVerification = async (req, res) => {
 
 export const approveVerification = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.params.userId);
+    const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     if (user.verificationStatus === "verified") {
@@ -45,7 +45,7 @@ export const approveVerification = async (req, res) => {
 
 export const rejectVerification = async (req, res) => {
   try {
-    const user = await UserModel.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       req.params.userId,
       { verificationStatus: "unverified" },
       { new: true }
@@ -60,7 +60,7 @@ export const rejectVerification = async (req, res) => {
 };
 
 export const getPendingVerifications = async (req, res) => { 
-  const pendingUsers = await UserModel.find({verificationStatus : "pending"})
+  const pendingUsers = await User.find({verificationStatus : "pending"})
   .select("-password"); 
 
   return res.status(200).json(pendingUsers);

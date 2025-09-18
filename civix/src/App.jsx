@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
@@ -21,6 +21,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
 import petitionsData from "./components/petitionData";
 import SignPetition from "./components/SignPetition";
+import PetitionDetails from "./components/PetitionDetails";
+import PetitionDetailsPage from "./components/PetitionDetailsPage";
+
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
@@ -29,7 +32,15 @@ export default function App() {
 
   // ✅ State for petitions and approvals
   const [approvedPetitions, setApprovedPetitions] = useState([]);
-  const [petitions, setPetitions] = useState(petitionsData); // central petitions state
+  const [petitions, setPetitions] = useState(() => {
+    const saved = localStorage.getItem('petitions');
+    return saved ? JSON.parse(saved) : petitionsData;
+  });
+
+  // Save petitions to localStorage whenever petitions change
+  useEffect(() => {
+    localStorage.setItem('petitions', JSON.stringify(petitions));
+  }, [petitions]);
 
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
@@ -87,6 +98,7 @@ export default function App() {
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/set-new-password" element={<SetNewPassword />} />
+          <Route path="/dashboard/citizen/petition/:id" element={<PetitionDetailsPage />} />
 
           {/* Citizen */}
           <Route
@@ -101,19 +113,23 @@ export default function App() {
             path="/dashboard/citizen/petitions"
             element={
               <ProtectedRoute allowedRole="citizen">
-                <PetitionPage
-                  petitions={petitions}
-                  setPetitions={setPetitions}
-                  onSign={handleSignPetition}
-                />
+                <PetitionPage />
               </ProtectedRoute>
             }
           />
           <Route
+              path="/dashboard/citizen/petition/:id"
+              element={
+                <ProtectedRoute allowedRole="citizen">
+                  <PetitionDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+          <Route
             path="/dashboard/citizen/create-petition"
             element={
               <ProtectedRoute allowedRole="citizen">
-                <CreatePetition setPetitions={setPetitions} />
+                <CreatePetition />
               </ProtectedRoute>
             }
           />
@@ -167,6 +183,7 @@ export default function App() {
               }
             />
           </Route>
+          
         </Routes>
       </div>
       {!hideFooterOnHome && <Footer />}

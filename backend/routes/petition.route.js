@@ -1,16 +1,28 @@
 import express from "express"; 
 import { jwtAuthMiddleware } from "../middlewares/auth.js";
-import { createPetition, deletePetition, getAllPetitions, getPetitionById, updatePetition } from "../controllers/petition.controller.js";
+import {
+  createPetition,
+  deletePetition,
+  getAllPetitions,
+  getPetitionById,
+  updatePetition,
+} from "../controllers/petition.controller.js";
 
+const router = express.Router();
 
-const router = express.Router(); 
+// Create a new petition
+router.post("/create", jwtAuthMiddleware, createPetition);
 
+// Get all petitions
+router.get("/petitions", jwtAuthMiddleware, getAllPetitions);
 
-router.post("/create" , jwtAuthMiddleware , createPetition); 
-router.get("/petitions" , jwtAuthMiddleware , getAllPetitions); 
-router.get("/getPetitionById/:userId" , jwtAuthMiddleware , getPetitionById);
-router.put("/update/:userId" , jwtAuthMiddleware , updatePetition); 
-router.delete("/delete" , jwtAuthMiddleware , deletePetition); 
+// Get a specific petition by ID (for View Details)
+router.get("/petition/:id", jwtAuthMiddleware, getPetitionById);
 
+// Update a petition by ID
+router.put("/update/:id", jwtAuthMiddleware, updatePetition);
 
-export default router ; 
+// Delete a petition by ID
+router.delete("/delete/:id", jwtAuthMiddleware, deletePetition);
+
+export default router;

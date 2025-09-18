@@ -74,7 +74,7 @@ const PetitionCard = ({ petition }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col h-full">
       <h2 className="text-lg font-semibold mb-2">{petition.title}</h2>
 
       {petition.description && (
@@ -88,7 +88,7 @@ const PetitionCard = ({ petition }) => {
         Signatures: {petition.signatures} / {petition.target}
       </p>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-auto">
         {/* View Details */}
         <button
           onClick={() => navigate(`/dashboard/citizen/petition/${petition.id}`)}
@@ -98,15 +98,17 @@ const PetitionCard = ({ petition }) => {
         </button>
 
         {/* Sign Petition */}
-        {petition.status === "Active" && (
-          <button
-  onClick={() => navigate(`/dashboard/citizen/sign/${petition.id}`)}
-  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
->
-  Sign Petition
-</button>
-
-        )}
+        <button
+          onClick={() => navigate(`/dashboard/citizen/sign/${petition.id}`)}
+          className={`px-3 py-1 text-white text-sm rounded ${
+            petition.status === "Active" 
+              ? "bg-green-600 hover:bg-green-700" 
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+          disabled={petition.status !== "Active"}
+        >
+          Sign Petition
+        </button>
       </div>
     </div>
   );

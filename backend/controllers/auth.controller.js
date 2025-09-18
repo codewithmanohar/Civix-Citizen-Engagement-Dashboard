@@ -1,10 +1,10 @@
-// controllers/userController.js
+//controllers/userController.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import dotenv from "dotenv";
 import { sendVerficationCode } from "../middlewares/email.js";
-import UserModel from "../models/user.js";
+//import UserModel from "../models/user.js";
 import { generateOtp } from "../libs/generate.otp.js";
 dotenv.config();
 
@@ -111,7 +111,7 @@ export const deleteUser = async (req, res) => {
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
-    let user = await UserModel.findOne({ email });
+    let user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = generateOtp();
@@ -130,7 +130,7 @@ export const sendOtp = async (req, res) => {
 export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const user = await UserModel.findOne({ email });
+    const user = await User.findOne({ email });
 
     if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -150,7 +150,7 @@ export const verifyOtp = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
-    const user = await UserModel.findOne({ email });
+    const user = await User.findOne({ email });
 
     if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
