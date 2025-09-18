@@ -16,10 +16,10 @@ import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import ForgotPassword from "./components/Forgotpassword"; // ✅ fixed case
 import SetNewPassword from "./components/SetNewPassword";
-import CitizenDashboard from "./components/CitizenDashboard";
+import CitizenDashboard from "./pages/CitizenDashboard";
 import PetitionPage from "./components/PetitionPage";
 import CreatePetition from "./components/CreatePetition";
-import OfficialDashboard from "./components/OfficialDashboard";
+import OfficialDashboard from "./pages/OfficialDashboard";
 import OfficialActivePetitions from "./components/OfficialActivePetitions";
 import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";

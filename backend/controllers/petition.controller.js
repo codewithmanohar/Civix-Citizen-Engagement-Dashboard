@@ -142,7 +142,6 @@ export const getPetitionSignatures = async (req, res) => {
 export const filterPetitions = async (req, res) => { 
   try {
     const filter = queryFilter(req.query); 
-    console.log(filter);
     const petitions = await PetitionModel.find(filter); 
     res.status(200).json(petitions);
     

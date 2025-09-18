@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api"; 
 import { getAllPetitions } from "../lib/petitionService"; 
-import PetitionCard from "./PetitionCard"; 
+import PetitionCard from "../components/PetitionCard"; 
 
 const CitizenDashboard = () => {
   const navigate = useNavigate();
