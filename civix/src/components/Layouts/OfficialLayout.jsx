@@ -1,6 +1,6 @@
 // OfficialLayout.jsx
 import { Outlet } from "react-router-dom";
-import OfficialSidebar from "./OfficialSidebar";
+import OfficialSidebar from "../Sidebars/OfficialSidebar";
 
 export default function OfficialLayout() {
   return (

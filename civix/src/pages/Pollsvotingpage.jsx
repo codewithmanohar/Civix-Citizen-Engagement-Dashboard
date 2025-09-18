@@ -1,7 +1,7 @@
 // src/PollVotingPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import "./Pollsvotingpage.css";
+import "../styles/Pollsvotingpage.css";
 
 const PollVotingPage = () => {
   const { id } = useParams();

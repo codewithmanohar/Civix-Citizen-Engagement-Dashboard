@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import PetitionCard from "./PetitionCard";
+import PetitionCard from "../components/PetitionCard";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import SignPetition from "./SignPetition";
 import { getAllPetitions } from "../lib/petitionService";

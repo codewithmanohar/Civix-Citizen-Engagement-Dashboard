@@ -17,27 +17,27 @@ import RegisterForm from "./components/RegisterForm";
 import ForgotPassword from "./components/Forgotpassword"; // ✅ fixed case
 import SetNewPassword from "./components/SetNewPassword";
 import CitizenDashboard from "./pages/CitizenDashboard";
-import PetitionPage from "./components/PetitionPage";
+import PetitionPage from "./pages/PetitionPage";
 import CreatePetition from "./components/CreatePetition";
 import OfficialDashboard from "./pages/OfficialDashboard";
 import OfficialActivePetitions from "./components/OfficialActivePetitions";
 import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";
 import OfficialPetitionView from "./components/OfficialPetitionView";
-import OfficialLayout from "./components/OfficialLayout";
+import OfficialLayout from "./components/Layouts/OfficialLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import petitionsData from "./components/petitionData";
-import SignPetition from "./components/SignPetition";
-import Layout from "./components/Layout";
+import SignPetition from "./pages/SignPetition";
+import Layout from "./components/Layouts/Layout";
 // Polls
-import CivixPollsPage from "./components/Civixpollspage";   // ✅ fixed casing
+import CivixPollsPage from "./pages/Civixpollspage";   // ✅ fixed casing
 import PollCreationPage from "./components/Pollscreation";  // ✅ fixed casing
-import PollVotingPage from "./components/Pollsvotingpage";  // ✅ fixed casing
+import PollVotingPage from "./pages/Pollsvotingpage";  // ✅ fixed casing
 
 // Toastify
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ViewPetition from "./components/ViewPetitions";
+import ViewPetition from "./pages/ViewPetitions";
 
 export default function App() {
   const location = useLocation();

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import LoginForm from './LoginForm.jsx';
-import RegisterForm from './RegisterForm.jsx';
-import ForgotPassword from './Forgotpassword.jsx';
+import LoginForm from '../LoginForm.jsx';
+import RegisterForm from '../RegisterForm.jsx';
+import ForgotPassword from '../Forgotpassword.jsx';
 
 export default function AuthModal({
   onClose,
