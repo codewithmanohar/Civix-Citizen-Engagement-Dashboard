@@ -75,3 +75,47 @@ export const deletePoll = async (req, res) => {
     res.status(500).json({ message: "Error deleting poll", error: error.message });
   }
 };
+
+
+export const getPollResults = async (req, res) => {
+  try {
+    const pollId = req.params.id;
+
+    // Find poll
+    const poll = await Poll.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
+
+    // Aggregate votes
+    const votes = await vote.aggregate([
+      { $match: { pollId: poll._id } },
+      { $group: { _id: "$selectedOption", count: { $sum: 1 } } },
+    ]);
+
+    // Total votes
+    const totalVotes = votes.reduce((acc, v) => acc + v.count, 0);
+
+    // Format results with percentages
+    const results = poll.options.map((opt) => {
+      const voteObj = votes.find((v) => v._id === opt.optionText);
+      const count = voteObj ? voteObj.count : 0;
+      const percentage = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(1) : 0;
+
+      return {
+        option: opt.optionText,
+        count,
+        percentage: Number(percentage),
+      };
+    });
+
+    res.status(200).json({
+      pollId: poll._id,
+      title: poll.title,
+      results,
+      totalVotes,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching poll results", error: error.message });
+  }
+};
