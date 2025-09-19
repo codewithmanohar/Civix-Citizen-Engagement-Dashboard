@@ -42,6 +42,7 @@ import PollVotingPage from "./pages/Pollsvotingpage";  // ✅ fixed casing
 // Toastify
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Profile from "./pages/Profile";
 
 
 export default function App() {
@@ -132,20 +133,14 @@ export default function App() {
                       path="create-petition"
                       element={<CreatePetition setPetitions={setPetitions} />}
                     />
-                    <Route
-                      path="sign/:id"
-                      element={<SignPetition onSign={handleSignPetition} />}
-                    />
-                    <Route
-                      path="view/:id"
-                      element={<ViewPetition />}
-                    />
-                     <Route path="/polls" element={<CivixPollsPage />} />
-                     <Route path="/polls/create" element={<PollCreationPage />} />
-                     <Route path="/polls/:id" element={<PollVotingPage />} />
-                     <Route path="/Settings" element={<Settings />} />
-                     <Route path="/Help" element={<HelpSupport />} />
-                     <Route path="/Reports" element={<Reports />} />
+                    <Route path="sign/:id" element={<SignPetition onSign={handleSignPetition} />} />
+                    <Route path="view/:id" element={<ViewPetition />} />
+                    <Route path="polls" element={<CivixPollsPage />} />
+                    <Route path="polls/create" element={<PollCreationPage />} />
+                    <Route path="polls/:id" element={<PollVotingPage />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="help" element={<HelpSupport />} />
+                    <Route path="reports" element={<Reports />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
@@ -154,7 +149,7 @@ export default function App() {
 
           {/* Official */}
           <Route
-            path="/dashboard/official"
+            path="/dashboard/official/*"
             element={
               <ProtectedRoute allowedRole="official">
                 <OfficialLayout />
@@ -164,45 +159,28 @@ export default function App() {
             <Route index element={<OfficialDashboard />} />
             <Route
               path="petitions/pending"
-              element={
-                <OfficialActivePetitions addToApproved={addToApproved} />
-              }
+              element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
             <Route
               path="petitions/approved"
-              element={
-                <OfficialUnderReviewPetitions
-                  approvedPetitions={approvedPetitions}
-                />
-              }
+              element={<OfficialUnderReviewPetitions approvedPetitions={approvedPetitions} />}
             />
-            <Route
-              path="petitions/resolved"
-              element={<OfficialResolvedPetitions />}
-            />
-            <Route
-              path="petitions/view/:id"
-              element={<OfficialPetitionView />}
-            />
-            <Route
-              path="create-petition"
-              element={
-                <ProtectedRoute allowedRole="official">
-                  <CreatePetition />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="petitions/resolved" element={<OfficialResolvedPetitions />} />
+            <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
+            <Route path="create-petition" element={<CreatePetition />} />
+            <Route path="polls" element={<CivixPollsPage />} />
+            <Route path="polls/create" element={<PollCreationPage />} />
+            <Route path="polls/:id" element={<PollVotingPage />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<HelpSupport />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile/>} />
+
           </Route>
 
-          {/* Polls */}
-          {/* Polls */}
-          <Route element={<Layout />}>
-            <Route path="/polls" element={<CivixPollsPage />} />
-            <Route path="/polls/create" element={<PollCreationPage />} />
-            <Route path="/polls/:id" element={<PollVotingPage />} />
-          </Route>
-
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </div>
 
