@@ -29,6 +29,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import petitionsData from "./components/petitionData";
 import SignPetition from "./pages/SignPetition";
 import Layout from "./components/Layouts/Layout";
+import NotFound from "./pages/NotFoundPage";
 // Polls
 import CivixPollsPage from "./pages/Civixpollspage";   // ✅ fixed casing
 import PollCreationPage from "./components/Pollscreation";  // ✅ fixed casing
@@ -191,7 +192,7 @@ export default function App() {
             <Route path="/polls/:id" element={<PollVotingPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
 
