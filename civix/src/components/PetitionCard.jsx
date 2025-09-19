@@ -1,10 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../lib/api"; // ✅ your axios instance
 
 const PetitionCard = ({ petition }) => {
   const navigate = useNavigate();
-  const signatureCount = petition.signatures ? petition.signatures.length : 0;
+  const [signatureCount, setSignatureCount] = useState(0);
   const goal = petition.signatureGoal || petition.target || 100;
+
+  // Fetch signatures when card loads
+  useEffect(() => {
+    const fetchSignatures = async () => {
+      try {
+        const res = await api.get(`/petition/signature/${petition._id}`);
+        setSignatureCount(res.data.total);
+      } catch (err) {
+        console.error("Error fetching signatures", err);
+      }
+    };
+    fetchSignatures();
+  }, [petition._id]);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
@@ -22,7 +36,6 @@ const PetitionCard = ({ petition }) => {
       </p>
 
       <div className="flex gap-2">
-        {/* ✅ Fixed path */}
         <button
           onClick={() => navigate(`/dashboard/citizen/view/${petition._id}`)}
           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -40,8 +53,5 @@ const PetitionCard = ({ petition }) => {
     </div>
   );
 };
-
-
-
 
 export default PetitionCard;

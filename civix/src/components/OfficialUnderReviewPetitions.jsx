@@ -7,15 +7,27 @@ export default function OfficialUnderReviewPetitions({ approvedPetitions: dynami
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch petitions that are under review
   const getUnderReviewPetitions = async () => {
     try {
       const response = await api.get("/petition");
       if (response.data) {
-        const approved = response.data.filter((p) => p.status === "Under Review");
-        setApprovedPetitions(approved);
+        const underReview = response.data.filter((p) => p.status === "Under Review");
+        setApprovedPetitions(underReview);
       }
     } catch (err) {
-      console.error("Error fetching approved petitions:", err);
+      console.error("Error fetching petitions:", err);
+    }
+  };
+
+  // Update petition status (resolve/reject)
+  const updatePetitionStatus = async (id, status) => {
+    try {
+      await api.put(`/petition/petition/${id}/status`, { status });
+      // Remove petition from current Under Review list after status change
+      setApprovedPetitions((prev) => prev.filter((p) => p._id !== id));
+    } catch (err) {
+      console.error(`Error updating petition ${id} to ${status}:`, err);
     }
   };
 
@@ -24,10 +36,9 @@ export default function OfficialUnderReviewPetitions({ approvedPetitions: dynami
   }, []);
 
   useEffect(() => {
-    // Merge dynamic approved petitions from parent with backend ones
+    // Merge petitions passed from parent with backend ones
     if (dynamicApproved && dynamicApproved.length > 0) {
       setApprovedPetitions((prev) => {
-        // Avoid duplicates
         const ids = new Set(prev.map((p) => p._id));
         const newOnes = dynamicApproved.filter((p) => !ids.has(p._id));
         return [...prev, ...newOnes];
@@ -43,7 +54,7 @@ export default function OfficialUnderReviewPetitions({ approvedPetitions: dynami
     <div className="w-full bg-blue-50 p-6">
       <div className="w-full max-w-6xl bg-white shadow-md rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-700">Approved Petitions</h1>
+          <h1 className="text-3xl font-bold text-blue-700">Under Review Petitions</h1>
           <div className="relative">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
@@ -81,20 +92,32 @@ export default function OfficialUnderReviewPetitions({ approvedPetitions: dynami
                         {p.status}
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 flex gap-2">
                       <Link
                         to={`/dashboard/official/petitions/view/${p._id}`}
                         className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-sm"
                       >
                         View
                       </Link>
+                      <button
+                        onClick={() => updatePetitionStatus(p._id, "Resolved")}
+                        className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition text-sm"
+                      >
+                        Resolve
+                      </button>
+                      <button
+                        onClick={() => updatePetitionStatus(p._id, "Rejected")}
+                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition text-sm"
+                      >
+                        Reject
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="6" className="text-center p-4 text-gray-500">
-                    No approved petitions
+                    No petitions under review
                   </td>
                 </tr>
               )}

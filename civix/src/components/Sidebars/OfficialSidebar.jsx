@@ -1,5 +1,5 @@
 // OfficialSidebar.jsx
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   FileText,
@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Settings,
   HelpCircle,
+  LogOut,
 } from "lucide-react";
 
 const OfficialSidebar = () => {
@@ -15,6 +16,13 @@ const OfficialSidebar = () => {
   const userLocation = localStorage.getItem("location") || "Unknown";
   const role = localStorage.getItem("userRole") || "official";
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignout = () => {
+    localStorage.clear(); // ✅ clear session
+    navigate("/"); // ✅ redirect to homepage/login
+  };
+
 
   const links = [
     { to: "/dashboard/official", label: "Dashboard", icon: Home },
@@ -27,11 +35,11 @@ const OfficialSidebar = () => {
         { to: "/dashboard/official/petitions/resolved", label: "Resolved" },
       ],
     },
-    { to: "/dashboard/official/polls", label: "Polls", icon: BarChart2 },
-    { to: "/dashboard/official/profile", label: "Profile", icon: Users },
-    { to: "/dashboard/official/reports", label: "Reports", icon: ClipboardList },
-    { to: "/dashboard/official/settings", label: "Settings", icon: Settings },
-    { to: "/dashboard/official/help", label: "Help & Support", icon: HelpCircle },
+    { to: "/polls", label: "Polls", icon: BarChart2 },
+    { to: "/officials", label: "Officials", icon: Users },
+    { to: "/reports", label: "Reports", icon: ClipboardList },
+    { to: "/settings", label: "Settings", icon: Settings },
+    { to: "/help", label: "Help & Support", icon: HelpCircle },
   ];
 
   return (
@@ -100,6 +108,16 @@ const OfficialSidebar = () => {
           );
         })}
       </nav>
+       {/* ✅ Signout Button at bottom */}
+      <div className="p-4 border-t">
+        <button
+          onClick={handleSignout}
+          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+        >
+          <LogOut size={18} />
+          Signout
+        </button>
+      </div>
     </div>
   );
 };

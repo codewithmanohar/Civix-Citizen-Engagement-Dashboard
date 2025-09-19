@@ -109,15 +109,7 @@ const CitizenDashboard = () => {
 
   return (
     <div className="flex-1 flex flex-col p-6 bg-blue-50 min-h-screen">
-      {/* Topbar */}
-      <div className="flex justify-end mb-6">
-        <button
-          onClick={handleSignout}
-          className="px-4 py-2 bg-blue-700 text-blue-50 rounded-lg shadow hover:bg-blue-800 transition"
-        >
-          Signout
-        </button>
-      </div>
+      
 
       {/* Welcome Section */}
       <section className="bg-white p-6 rounded-lg shadow mb-6 text-blue-600">

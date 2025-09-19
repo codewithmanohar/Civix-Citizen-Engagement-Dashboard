@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation,useNavigate } from "react-router-dom";
 import {
   Home,
   FileText,
@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Settings,
   HelpCircle,
+  LogOut,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -14,6 +15,12 @@ const Sidebar = () => {
   const userLocation = localStorage.getItem("location") || "Unknown";
   const role = localStorage.getItem("userRole"); // ✅ get role
   const currentRoute = useLocation(); // ✅ get current route
+  const navigate = useNavigate();
+
+  const handleSignout = () => {
+    localStorage.clear(); // ✅ clear session
+    navigate("/"); // ✅ redirect to homepage/login
+  };
 
   const links = [
     {
@@ -69,6 +76,15 @@ const Sidebar = () => {
           );
         })}
       </nav>
+      <div className="p-4 border-t">
+        <button
+          onClick={handleSignout}
+          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+        >
+          <LogOut size={18} />
+          Signout
+        </button>
+      </div>
     </div>
   );
 };

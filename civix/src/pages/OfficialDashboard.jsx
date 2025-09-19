@@ -121,16 +121,7 @@ export default function OfficialDashboard() {
 
   return (
     <div className="w-full min-h-screen bg-blue-50 p-6">
-      {/* Top Bar */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-blue-700">Official Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
-        >
-          Logout
-        </button>
-      </div>
+      
 
       <div className="bg-white p-6 rounded-lg shadow">
         {/* Stats */}
