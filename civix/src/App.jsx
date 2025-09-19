@@ -30,6 +30,10 @@ import petitionsData from "./components/petitionData";
 import SignPetition from "./pages/SignPetition";
 import Layout from "./components/Layouts/Layout";
 import NotFound from "./pages/NotFoundPage";
+import ViewPetition from "./pages/ViewPetitions";
+import HelpSupport from "./pages/HelpSupport";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 // Polls
 import CivixPollsPage from "./pages/Civixpollspage";   // ✅ fixed casing
 import PollCreationPage from "./components/Pollscreation";  // ✅ fixed casing
@@ -38,7 +42,7 @@ import PollVotingPage from "./pages/Pollsvotingpage";  // ✅ fixed casing
 // Toastify
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ViewPetition from "./pages/ViewPetitions";
+
 
 export default function App() {
   const location = useLocation();
@@ -136,6 +140,12 @@ export default function App() {
                       path="view/:id"
                       element={<ViewPetition />}
                     />
+                     <Route path="/polls" element={<CivixPollsPage />} />
+                     <Route path="/polls/create" element={<PollCreationPage />} />
+                     <Route path="/polls/:id" element={<PollVotingPage />} />
+                     <Route path="/Settings" element={<Settings />} />
+                     <Route path="/Help" element={<HelpSupport />} />
+                     <Route path="/Reports" element={<Reports />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

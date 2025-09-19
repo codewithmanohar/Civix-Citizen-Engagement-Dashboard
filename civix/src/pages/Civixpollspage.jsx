@@ -141,7 +141,7 @@ const CivixPollsPage = () => {
             Create a poll to gather input and understand public sentiment on local issues.
           </p>
           <button
-            onClick={() => navigate("/polls/create")}
+            onClick={() => navigate("/dashboard/citizen/polls/create")}
             className="mt-4 px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
           >
             Create a Poll

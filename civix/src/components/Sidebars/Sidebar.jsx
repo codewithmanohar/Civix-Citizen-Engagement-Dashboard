@@ -28,10 +28,10 @@ const Sidebar = () => {
       label: "Petitions",
       icon: FileText,
     },
-    { to: "/", label: "Polls", icon: BarChart2 },
-    { to: "/", label: "Reports", icon: ClipboardList },
-    { to: "/", label: "Settings", icon: Settings },
-    { to: "/", label: "Help & Support", icon: HelpCircle },
+    { to: "/dashboard/citizen/polls", label: "Polls", icon: BarChart2 },
+    { to: "/dashboard/citizen/Reports", label: "Reports", icon: ClipboardList },
+    { to: "/dashboard/citizen/Settings", label: "Settings", icon: Settings },
+    { to: "/dashboard/citizen/Help", label: "Help & Support", icon: HelpCircle },
   ];
 
   return (
