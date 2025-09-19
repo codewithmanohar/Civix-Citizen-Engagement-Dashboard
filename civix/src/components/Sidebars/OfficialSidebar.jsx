@@ -35,11 +35,11 @@ const OfficialSidebar = () => {
         { to: "/dashboard/official/petitions/resolved", label: "Resolved" },
       ],
     },
-    { to: "/polls", label: "Polls", icon: BarChart2 },
-    { to: "/officials", label: "Officials", icon: Users },
-    { to: "/reports", label: "Reports", icon: ClipboardList },
-    { to: "/settings", label: "Settings", icon: Settings },
-    { to: "/help", label: "Help & Support", icon: HelpCircle },
+    { to: "/dashboard/official/polls", label: "Polls", icon: BarChart2 },
+    { to: "/dashboard/official/profile", label: "Profile", icon: Users },
+    { to: "/dashboard/official/reports", label: "Reports", icon: ClipboardList },
+    { to: "/dashboard/official/settings", label: "Settings", icon: Settings },
+    { to: "/dashboard/official/help", label: "Help & Support", icon: HelpCircle },
   ];
 
   return (
