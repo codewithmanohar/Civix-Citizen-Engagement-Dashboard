@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import PetitionCard from "../components/PetitionCard";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import SignPetition from "./SignPetition";
-import { getAllPetitions } from "../lib/petitionService";
+import { getAllPetitions, getMySignedPetitions } from "../lib/petitionService";
 
 const PetitionPage = () => {
   const [petitions, setPetitions] = useState([]);
@@ -11,15 +11,34 @@ const PetitionPage = () => {
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+ // Get unique locations from petitions
+   // Get unique locations safely
+const locations = [
+  "All Locations",
+  ...new Set(
+    petitions
+      .filter(p => p && p.location) // ✅ remove null/undefined
+      .map(p => p.location)
+  )
+];
+
 
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("name");
 
   useEffect(() => {
     const fetchPetitions = async () => {
+      setLoading(true);
       try {
-        const data = await getAllPetitions();
-        setPetitions(data);
+        if (selectedTab === "signed") {
+          // Fetch only signed petitions from backend
+          const data = await getMySignedPetitions();
+          setPetitions(data.petitions || []); // ✅ use the petitions array
+        } else {
+          // Fetch all petitions
+          const data = await getAllPetitions();
+          setPetitions(data);
+        }
       } catch (err) {
         console.error("Failed to load petitions:", err);
       } finally {
@@ -27,37 +46,27 @@ const PetitionPage = () => {
       }
     };
     fetchPetitions();
-  }, []);
+  }, [selectedTab]);
 
-  const filteredPetitions = petitions.filter((p) => {
-    const matchesTab =
-      selectedTab === "all"
-        ? true
-        : selectedTab === "mine"
-        ? p.createdBy?.name === currentUser
-        : p.signatures?.some((s) => s.user.name === currentUser);
+  // Filter petitions for "mine" tab and filters
+ const filteredPetitions = petitions
+  .filter((p) => p) // ✅ remove null
+  .filter((p) => selectedTab !== "mine" || p.createdBy?.name === currentUser)
+  .filter(
+    (p) =>
+      (selectedLocation === "All Locations" || p.location === selectedLocation) &&
+      (selectedStatus === "All" || p.status === selectedStatus) &&
+      (selectedCategory === "All Categories" || p.category === selectedCategory)
+  );
 
-    const matchesLocation =
-      selectedLocation === "All Locations" ? true : p.location === selectedLocation;
-
-    const matchesStatus = selectedStatus === "All" ? true : p.status === selectedStatus;
-
-    const matchesCategory =
-      selectedCategory === "All Categories" ? true : p.category === selectedCategory;
-
-    return matchesTab && matchesLocation && matchesStatus && matchesCategory;
-  });
 
   if (loading) return <div className="p-6">Loading petitions...</div>;
 
   return (
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
-      
-      {/* Fixed Header */}
+      {/* Header */}
       <div className="bg-blue-50 px-6 py-4 border-b shadow flex-shrink-0">
-
-        <h1 class="text-blue-900 text-3xl font-bold mb-4">Petitions</h1>
-
+        <h1 className="text-blue-900 text-3xl font-bold mb-4">Petitions</h1>
 
         <div className="flex flex-wrap justify-between items-center gap-4">
           {/* Tabs */}
@@ -72,11 +81,7 @@ const PetitionPage = () => {
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                 }`}
               >
-                {tab === "all"
-                  ? "All Petitions"
-                  : tab === "mine"
-                  ? "My Petitions"
-                  : "Signed by Me"}
+                {tab === "all" ? "All Petitions" : tab === "mine" ? "My Petitions" : "Signed by Me"}
               </button>
             ))}
           </div>
@@ -84,15 +89,15 @@ const PetitionPage = () => {
           {/* Filters */}
           <div className="flex gap-3 ml-auto flex-wrap">
             <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="px-3 py-2 border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option>All Locations</option>
-              <option>AP</option>
-              <option>Los Angeles</option>
-              <option>New York</option>
-            </select>
+  value={selectedLocation}
+  onChange={(e) => setSelectedLocation(e.target.value)}
+  className="px-3 py-2 border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+>
+  {locations.map((loc) => (
+    <option key={loc}>{loc}</option>
+  ))}
+</select>
+
 
             <select
               value={selectedStatus}
@@ -123,7 +128,7 @@ const PetitionPage = () => {
         </div>
       </div>
 
-      {/* Scrollable Petition Cards */}
+      {/* Petition Cards */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPetitions.map((petition) => (
@@ -136,7 +141,7 @@ const PetitionPage = () => {
         </Routes>
       </div>
 
-      {/* Fixed Footer CTA */}
+      {/* Footer CTA */}
       <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-xl font-semibold text-gray-800">

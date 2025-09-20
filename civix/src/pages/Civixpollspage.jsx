@@ -1,51 +1,81 @@
-// src/CivixPollsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const CivixPollsPage = () => {
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState("Active Polls");
-  const [selectedLocation, setSelectedLocation] = useState("San Diego");
   const [polls, setPolls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("all"); // all, mine, closed
+  const [selectedLocation, setSelectedLocation] = useState("All Locations");
+  const [locations, setLocations] = useState([]);
 
-  const tabs = ["Active Polls", "My Polls", "Closed Polls"];
-  const locations = ["AP", "San Diego", "Los Angeles", "Orange County"];
+  // Get logged-in user name from localStorage
+  const currentUserName = localStorage.getItem("name");
+
+  const tabs = ["all", "mine", "closed"];
 
   useEffect(() => {
-    axios
-      .get("http://localhost:4000/api/polls")
-      .then((res) => setPolls(res.data))
-      .catch((err) => console.error("Error fetching polls", err));
+    const fetchPolls = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get("http://localhost:4000/api/polls");
+        const data = res.data || [];
+        setPolls(data);
+
+        // Extract unique locations dynamically
+        const uniqueLocations = [
+          "All Locations",
+          ...new Set(data.filter(p => p && p.targetLocation).map(p => p.targetLocation))
+        ];
+        setLocations(uniqueLocations);
+      } catch (err) {
+        console.error("Error fetching polls", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPolls();
   }, []);
 
-  const filteredPolls = polls.filter(
-    (poll) => poll.targetLocation === selectedLocation
-  );
+  // Filter polls based on tab and location
+  const filteredPolls = polls
+    .filter(p => p) // remove null/undefined
+    .filter(p => {
+      // Tab logic using creator's name
+      if (selectedTab === "mine") return p.createdBy?.name === currentUserName;
+      if (selectedTab === "closed") return p.isClosed === true;
+      return true; // "all"
+    })
+    .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation);
 
   const handleVote = (poll) => {
     navigate(`/polls/${poll._id}`, { state: { poll } });
   };
+
+  if (loading) return <div className="p-6">Loading polls...</div>;
 
   return (
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
       {/* Header */}
       <div className="bg-blue-50 px-6 py-4 border-b shadow flex-shrink-0">
         <h1 className="text-blue-900 text-3xl font-bold mb-4">Polls</h1>
+
         <div className="flex flex-wrap justify-between items-center gap-4">
           {/* Tabs */}
           <div className="flex gap-2">
-            {tabs.map((tab) => (
+            {tabs.map(tab => (
               <button
                 key={tab}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  selectedTab === tab
-                    ? "bg-blue-600 text-white"
-                    : "bg-white border text-gray-700 hover:bg-blue-50"
-                }`}
                 onClick={() => setSelectedTab(tab)}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+                  selectedTab === tab
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                }`}
               >
-                {tab}
+                {tab === "all" ? "All Polls" : tab === "mine" ? "My Polls" : "Closed Polls"}
               </button>
             ))}
           </div>
@@ -54,14 +84,12 @@ const CivixPollsPage = () => {
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-gray-500">📍</span>
             <select
-              className="px-3 py-2 border rounded-lg text-sm bg-white focus:ring focus:ring-blue-200"
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
+              className="px-3 py-2 border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {locations.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
+              {locations.map(loc => (
+                <option key={loc}>{loc}</option>
               ))}
             </select>
           </div>
@@ -69,10 +97,10 @@ const CivixPollsPage = () => {
       </div>
 
       {/* Polls List */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 bg-gray-50">
+      <div className="flex-1 overflow-y-auto px-6 py-6">
         {filteredPolls.length > 0 ? (
           <ul className="space-y-4">
-            {filteredPolls.map((poll) => (
+            {filteredPolls.map(poll => (
               <li
                 key={poll._id}
                 className="flex justify-between items-center bg-white shadow rounded-lg p-4 border hover:shadow-md transition"
@@ -81,7 +109,13 @@ const CivixPollsPage = () => {
                   <h3 className="text-lg font-semibold text-gray-800">{poll.title}</h3>
                   <p className="text-xs text-gray-400 mt-1">
                     Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses:{" "}
-                    {poll.options.reduce((acc, o) => acc + (o.votes || 0), 0)}
+                    {poll.options?.reduce((acc, o) => acc + (o.votes || 0), 0) || 0}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Location: {poll.targetLocation || "Unknown"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Created By: {poll.createdBy?.name || "Unknown"}
                   </p>
                 </div>
                 <div>
@@ -97,13 +131,13 @@ const CivixPollsPage = () => {
           </ul>
         ) : (
           <div className="bg-white border rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500 mb-3">No polls found for this location.</p>
+            <p className="text-gray-500 mb-3">No polls found for this selection.</p>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="p-6 bg-white border-t shadow flex-shrink-0">
+      {/* Footer CTA */}
+      <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-xl font-semibold text-gray-800">Have a question?</h2>
           <p className="text-gray-600 mt-2">Create a poll for your community.</p>

@@ -36,7 +36,7 @@ export const getPolls = async (req, res) => {
 };
 
 
-export const getPollById = async (req, res) => {
+/*export const getPollById = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.id).populate("createdBy", "name email");
     if (!poll) {
@@ -46,7 +46,25 @@ export const getPollById = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching poll", error: error.message });
   }
+};*/
+export const getPollById = async (req, res) => {
+  try {
+    const poll = await Poll.findById(req.params.id).populate("createdBy", "name email");
+    if (!poll) return res.status(404).json({ message: "Poll not found" });
+
+    // Check if the requesting user has voted
+    let userHasVoted = false;
+    if (req.user) {
+      const existingVote = await Vote.findOne({ pollId: poll._id, userId: req.user.id });
+      userHasVoted = !!existingVote;
+    }
+
+    res.status(200).json({ ...poll.toObject(), userHasVoted });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching poll", error: error.message });
+  }
 };
+
 
 export const deletePoll = async (req, res) => {
   try {

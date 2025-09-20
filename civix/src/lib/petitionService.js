@@ -79,6 +79,18 @@ export const getPetitionById = async (id) => {
   return res.data;
 };
 
+// ✅ Fetch petitions signed by the logged-in user
+
+export const getMySignedPetitions = async () => {
+  try {
+    const res = await api.get("/petition/my-signed");
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching signed petitions:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 // Sign a petition
 export const signPetition = async (id, { name, comment }) => {
   const token = localStorage.getItem("authToken");
