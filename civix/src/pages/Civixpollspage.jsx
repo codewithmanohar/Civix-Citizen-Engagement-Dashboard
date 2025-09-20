@@ -1,42 +1,35 @@
 // src/CivixPollsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const CivixPollsPage = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("Active Polls");
   const [selectedLocation, setSelectedLocation] = useState("San Diego");
+  const [polls, setPolls] = useState([]);
 
-  const tabs = ["Active Polls", "Polls I Voted On", "My Polls", "Closed Polls"];
-  const locations = ["San Diego", "Los Angeles", "Orange County"];
-
-  const defaultPolls = [ /* ...your default polls... */ ];
-
-  const [polls, setPolls] = useState(() => {
-    try {
-      const saved = localStorage.getItem("civix_polls");
-      return saved ? JSON.parse(saved) : defaultPolls;
-    } catch {
-      return defaultPolls;
-    }
-  });
+  const tabs = ["Active Polls", "My Polls", "Closed Polls"];
+  const locations = ["AP", "San Diego", "Los Angeles", "Orange County"];
 
   useEffect(() => {
-    localStorage.setItem("civix_polls", JSON.stringify(polls));
-  }, [polls]);
+    axios
+      .get("http://localhost:4000/api/polls")
+      .then((res) => setPolls(res.data))
+      .catch((err) => console.error("Error fetching polls", err));
+  }, []);
 
   const filteredPolls = polls.filter(
-    (poll) => poll.status === selectedTab && poll.location === selectedLocation
+    (poll) => poll.targetLocation === selectedLocation
   );
 
   const handleVote = (poll) => {
-    navigate(`/polls/${poll.id}`, { state: { poll } });
+    navigate(`/polls/${poll._id}`, { state: { poll } });
   };
 
   return (
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
-
-      {/* Fixed Header */}
+      {/* Header */}
       <div className="bg-blue-50 px-6 py-4 border-b shadow flex-shrink-0">
         <h1 className="text-blue-900 text-3xl font-bold mb-4">Polls</h1>
         <div className="flex flex-wrap justify-between items-center gap-4">
@@ -75,71 +68,45 @@ const CivixPollsPage = () => {
         </div>
       </div>
 
-      {/* Scrollable Polls List */}
+      {/* Polls List */}
       <div className="flex-1 overflow-y-auto px-6 py-6 bg-gray-50">
         {filteredPolls.length > 0 ? (
           <ul className="space-y-4">
             {filteredPolls.map((poll) => (
               <li
-                key={poll.id}
+                key={poll._id}
                 className="flex justify-between items-center bg-white shadow rounded-lg p-4 border hover:shadow-md transition"
               >
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {poll.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{poll.summary}</p>
+                  <h3 className="text-lg font-semibold text-gray-800">{poll.title}</h3>
                   <p className="text-xs text-gray-400 mt-1">
-                    Posted: {poll.date} • Responses: {poll.responses}
+                    Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses:{" "}
+                    {poll.options.reduce((acc, o) => acc + (o.votes || 0), 0)}
                   </p>
                 </div>
                 <div>
-                  {poll.status === "Closed Polls" ? (
-                    <button
-                      onClick={() => handleVote(poll)}
-                      className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                    >
-                      View Results
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleVote(poll)}
-                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Vote Now
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleVote(poll)}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Vote Now
+                  </button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
           <div className="bg-white border rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500 mb-3">
-              No polls found with the current filters.
-            </p>
-            <button
-              onClick={() => {
-                setSelectedTab("Active Polls");
-                setSelectedLocation("San Diego");
-              }}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Clear Filters
-            </button>
+            <p className="text-gray-500 mb-3">No polls found for this location.</p>
           </div>
         )}
       </div>
 
-      {/* Fixed Footer CTA */}
+      {/* Footer */}
       <div className="p-6 bg-white border-t shadow flex-shrink-0">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Have a question for your community?
-          </h2>
-          <p className="text-gray-600 mt-2">
-            Create a poll to gather input and understand public sentiment on local issues.
-          </p>
+          <h2 className="text-xl font-semibold text-gray-800">Have a question?</h2>
+          <p className="text-gray-600 mt-2">Create a poll for your community.</p>
           <button
             onClick={() => navigate("/dashboard/citizen/polls/create")}
             className="mt-4 px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
