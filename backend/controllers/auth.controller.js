@@ -73,7 +73,7 @@ export const getUsers = async (req, res) => {
 // Get user by ID
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (error) {
@@ -88,7 +88,7 @@ export const updateUser = async (req, res) => {
     if (updates.password) {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
-    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select("-password");
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ message: "User updated successfully", user });
   } catch (error) {
