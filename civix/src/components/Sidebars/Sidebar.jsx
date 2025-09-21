@@ -36,6 +36,7 @@ const Sidebar = () => {
       icon: FileText,
     },
     { to: "/dashboard/citizen/polls", label: "Polls", icon: BarChart2 },
+    { to: "/dashboard/citizen/profile", label: "Profile", icon: Users },
     { to: "/dashboard/citizen/Reports", label: "Reports", icon: ClipboardList },
     { to: "/dashboard/citizen/Settings", label: "Settings", icon: Settings },
     { to: "/dashboard/citizen/Help", label: "Help & Support", icon: HelpCircle },
