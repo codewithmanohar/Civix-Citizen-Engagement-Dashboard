@@ -107,6 +107,12 @@ export default function App() {
           }`}
       >
         <Routes>
+<<<<<<< HEAD
+=======
+          <Route path="/polls" element={<CivixPollsPage />} />
+          <Route path="/polls/create" element={<PollCreationPage />} />
+          <Route path="/polls/:id" element={<PollVotingPage />} />
+>>>>>>> df5c8f0462b43f71efe00f3248aafcfff631a59b
           {/* Public with AuthRedirect */}
           <Route
             path="/"
@@ -189,6 +195,7 @@ export default function App() {
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="help" element={<HelpSupport />} />
             <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<Profile />} />
