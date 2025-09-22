@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import heroImage from "../assets/hero.png";
-import AuthModal from './AuthModal.jsx';
+import AuthModal from './Auth/AuthModal.jsx';
 
 export default function Hero() {
   const [showModal, setShowModal] = useState(false);

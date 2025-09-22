@@ -1,179 +1,112 @@
-import React from "react";
-import { Bar, Doughnut } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
-
-const resolvedPetitions = [
-  {
-    id: 1,
-    title: "Improve Public Transportation in Downtown",
-    category: "Infrastructure",
-    createdBy: "Sarah Chen",
-    signatures: "15,230",
-    resolutionDate: "2023-11-15",
-    outcome:
-      "New bus routes and increased frequency implemented, leading to higher ridership.",
-    status: "Resolved",
-  },
-  {
-    id: 2,
-    title: "Fund Local Arts Programs",
-    category: "Culture",
-    createdBy: "David Kim",
-    signatures: "8,765",
-    resolutionDate: "2023-07-20",
-    outcome:
-      "City council approved a new grant program for community art initiatives.",
-    status: "Resolved",
-  },
-];
-
-const milestones = [
-  { title: "New Public Parks Initiative Approved", date: "2024-04-01" },
-  { title: "Transparency in Government Spending Portal Launched", date: "2024-03-28" },
-  { title: "Local Business Support Fund Distributed", date: "2024-03-15" },
-  { title: "Youth STEM Education Grants Announced", date: "2024-02-28" },
-];
-
-// Bar for monthly trends
-const monthlyResolvedData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-  datasets: [
-    {
-      label: "Resolved",
-      data: [12, 18, 9, 24, 30, 22],
-      backgroundColor: "#3B82F6",
-    },
-  ],
-};
-
-// Doughnut for outcomes
-const outcomeData = {
-  labels: ["Approved", "Under Review", "Requires Further Action", "Denied"],
-  datasets: [
-    {
-      data: [70, 15, 10, 5],
-      backgroundColor: ["#3B82F6", "#10B981", "#FBBF24", "#9CA3AF"],
-    },
-  ],
-};
+import React, { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import api from "../lib/api";
 
 export default function OfficialResolvedPetitions() {
+  const [resolvedPetitions, setResolvedPetitions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Fetch all petitions and filter for "Resolved"
+  const getResolvedPetitions = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/petition"); // ✅ Use main petitions route
+      if (response.data) {
+        const resolved = response.data.filter((p) => p.status === "Resolved");
+        setResolvedPetitions(resolved);
+      }
+    } catch (err) {
+      console.error("Error fetching resolved petitions:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getResolvedPetitions();
+  }, []);
+
+  const filteredPetitions = resolvedPetitions.filter((p) =>
+    p.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="w-full min-h-screen bg-blue-50 p-6 space-y-10 overflow-auto">
-      {/* Petition Resolution Log */}
-      <section>
-        <h1 className="text-3xl font-bold text-blue-700">Petition Resolution Log</h1>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead className="bg-blue-50">
+    <div className="w-full min-h-screen bg-blue-50 p-6">
+      <div className="w-full max-w-6xl bg-white shadow-md rounded-lg p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-blue-700">Resolved Petitions</h1>
+          <div className="relative">
+            <FaSearch className="absolute top-3 left-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search petitions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-sky-400 w-56"
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-base">
+            <thead className="bg-blue-100">
               <tr>
                 <th className="p-3">Title</th>
-                <th className="p-3">Category</th>
                 <th className="p-3">Created By</th>
                 <th className="p-3">Signatures</th>
                 <th className="p-3">Resolution Date</th>
-                <th className="p-3">Outcome</th>
                 <th className="p-3">Status</th>
+                <th className="p-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {resolvedPetitions.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-t hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="p-3 whitespace-nowrap">{p.title}</td>
-                  <td className="p-3">{p.category}</td>
-                  <td className="p-3 whitespace-nowrap">{p.createdBy}</td>
-                  <td className="p-3">{p.signatures}</td>
-                  <td className="p-3">{p.resolutionDate}</td>
-                  <td className="p-3">{p.outcome}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                      {p.status}
-                    </span>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="text-center p-4">
+                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredPetitions.length > 0 ? (
+                filteredPetitions.map((p) => (
+                  <tr key={p._id} className="border-t hover:bg-gray-50">
+                    <td className="p-3 font-medium text-gray-700">{p.title}</td>
+                    <td className="p-3">{p.createdBy?.name || "Unknown"}</td>
+                    <td className="p-3">{p.signatures?.length || 0}</td>
+                    <td className="p-3">
+                      {p.resolutionDate
+                        ? new Date(p.resolutionDate).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <Link
+                        to={`/dashboard/official/petitions/view/${p._id}`}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-sm"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center p-4 text-gray-500">
+                    No resolved petitions
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
-      </section>
-
-      {/* Milestones + Charts */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Milestones */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-tight">
-            Recent Milestones
-          </h2>
-          <ul className="space-y-4">
-            {milestones.map((m, i) => (
-              <li key={i} className="flex items-start space-x-3">
-                <span className="h-2 w-2 bg-blue-500 rounded-full mt-2"></span>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{m.title}</p>
-                  <p className="text-xs text-gray-500">{m.date}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Charts */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-tight">
-            Resolution Trends
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Bar – monthly trend */}
-            <div className="bg-gray-50 rounded-xl p-3 h-56">
-              <h3 className="text-xs font-semibold text-gray-700 mb-1">
-                Resolved per Month
-              </h3>
-              <Bar
-                data={monthlyResolvedData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: { y: { beginAtZero: true } },
-                }}
-              />
-            </div>
-
-            {/* Doughnut – outcomes */}
-            <div className="bg-gray-50 rounded-xl p-3 h-56">
-              <h3 className="text-xs font-semibold text-gray-700 mb-1">
-                Resolution Outcomes
-              </h3>
-              <Doughnut
-                data={outcomeData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: "bottom", // moves legend below chart
-                      labels: { font: { size: 12 }, padding: 12 },
-                    },
-                  },
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

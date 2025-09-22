@@ -16,9 +16,11 @@ export default function LoginForm({ onForgotPassword, onSwitchToRegister, mode =
     const { token, user } = res.data;
 
     localStorage.setItem("authToken", token);
-    localStorage.setItem("userRole", user.role); // ✅ role is inside user object
+    localStorage.setItem("userRole", user.role);
     localStorage.setItem("name", user.name);
-    localStorage.setItem("userEmail", user.email || email); // Store user email for petition tracking
+    localStorage.setItem("userEmail", user.email || email);
+    localStorage.setItem("location", user.location);
+    localStorage.setItem("userId", user._id || user.id);
     toast.success("Login successful! 🎉");
     if (user.role === "official") {
       navigate("/dashboard/official");

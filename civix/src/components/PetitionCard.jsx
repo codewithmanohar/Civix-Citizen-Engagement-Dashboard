@@ -1,77 +1,23 @@
-/*import React from 'react';
-
-const PetitionCard = ({ petition }) => {
-  return (
-    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
-      <h2 className="text-lg font-semibold mb-2">{petition.title}</h2>
-      {petition.description && (
-        <p className="text-sm text-gray-600 mb-2 line-clamp-3">{petition.description}</p>
-      )}
-      <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-3">Signatures: {petition.signatures} / {petition.target}</p>
-      <div className="flex gap-2">
-        <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">View Details</button>
-        {petition.status === 'Active' && (
-          <button className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">Sign Petition</button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default PetitionCard;
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../lib/api";
 
 const PetitionCard = ({ petition }) => {
   const navigate = useNavigate();
+  const [signatureCount, setSignatureCount] = useState(0);
+  const goal = petition.signatureGoal || petition.target || 100;
 
-  return (
-    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
-      <h2 className="text-lg font-semibold mb-2">{petition.title}</h2>
-
-      {petition.description && (
-        <p className="text-sm text-gray-600 mb-2 line-clamp-3">
-          {petition.description}
-        </p>
-      )}
-
-      <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-3">
-        Signatures: {petition.signatures} / {petition.target}
-      </p>
-
-      <div className="flex gap-2">
-        {/* View Details *}
-        <button
-          onClick={() => navigate(`/petition/${petition.id}`)}
-          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-        >
-          View Details
-        </button>
-
-        {/* Sign Petition *}
-        {petition.status === "Active" && (
-          <button
-            onClick={() => navigate(`/sign/${petition.id}`)}
-            className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-          >
-            Sign Petition
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default PetitionCard;*/
-// src/components/PetitionCard.jsx
-// src/components/PetitionCard.jsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
-
-const PetitionCard = ({ petition }) => {
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchSignatures = async () => {
+      try {
+        const res = await api.get(`/petition/signature/${petition._id}`);
+        setSignatureCount(res.data.total);
+      } catch (err) {
+        console.error("Error fetching signatures", err);
+      }
+    };
+    fetchSignatures();
+  }, [petition._id]);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col h-full">
@@ -85,21 +31,19 @@ const PetitionCard = ({ petition }) => {
 
       <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
       <p className="text-sm text-gray-500 mb-3">
-        Signatures: {petition.signatures} / {petition.target}
+        Signatures: {signatureCount} / {goal}
       </p>
 
       <div className="flex gap-2 mt-auto">
-        {/* View Details */}
         <button
-          onClick={() => navigate(`/dashboard/citizen/petition/${petition.id}`)}
+          onClick={() => navigate(`/dashboard/citizen/view/${petition._id}`)}
           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
         >
           View Details
         </button>
 
-        {/* Sign Petition */}
         <button
-          onClick={() => navigate(`/dashboard/citizen/sign/${petition.id}`)}
+          onClick={() => navigate(`/dashboard/citizen/sign/${petition._id}`)}
           className={`px-3 py-1 text-white text-sm rounded ${
             petition.status === "Active" 
               ? "bg-green-600 hover:bg-green-700" 

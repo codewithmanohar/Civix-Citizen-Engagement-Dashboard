@@ -4,6 +4,9 @@ import connectDB from "./config/config.js";
 import authRoutes from "./routes/auth.route.js";
 import verifyRoutes from './routes/verify.route.js';
 import petitionRoutes from './routes/petition.route.js';
+import dashboardRoutes from "./routes/dashboard.route.js"
+import pollsRoutes from "./routes/poll.route.js";
+import voteRoutes from "./routes/vote.route.js"
 import cors from "cors"
 
 
@@ -15,9 +18,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(cors({
-  origin: 'http://localhost:5173', // frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // allowed methods
-  credentials: true, // if you use cookies or authentication headers
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
 
 app.get("/" , (req , res) => {
@@ -30,7 +33,11 @@ app.use("/api/verify" , verifyRoutes);
 
 app.use("/api/petition" , petitionRoutes);
 
+app.use('/api/dashboard', dashboardRoutes);
 
+app.use("/api/polls" , pollsRoutes);
+
+app.use("/api/vote" , voteRoutes);
 
 app.listen(PORT ,()=> {
     console.log("Server is running on PORT :" , PORT);

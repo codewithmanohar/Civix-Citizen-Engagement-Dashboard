@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import Sidebar from "./Sidebars/Sidebar";
 
 function PetitionDetailsPage() {
   const { id } = useParams();

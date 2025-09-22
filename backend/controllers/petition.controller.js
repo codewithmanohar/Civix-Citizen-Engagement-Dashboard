@@ -1,4 +1,6 @@
+import { queryFilter } from "../libs/query.builder.js";
 import PetitionModel from "../models/petition.js";
+import SignatureModel from "../models/signature.js";
 
 export const createPetition = async (req, res) => {
   try {
@@ -82,3 +84,130 @@ export const deletePetition = async (req, res) => {
 };
 
 
+export const signPetition = async (req, res) => {
+  try {
+    const petitionId = req.params.id;
+    const userId = req.user.id; 
+    const { name, comment } = req.body;
+
+    const petition = await PetitionModel.findById(petitionId);
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    // Prevent creator from signing own petition
+    if (petition.createdBy.toString() === userId) {
+      return res.status(400).json({ message: "You cannot sign your own petition" });
+    }
+
+    // Prevent duplicate signatures (index also enforces this at DB level)
+    const existingSignature = await SignatureModel.findOne({ petitionId, userId });
+    if (existingSignature) {
+      return res.status(400).json({ message: "You have already signed this petition" });
+    }
+
+    // Create new signature with name + comment
+    const signature = new SignatureModel({
+      petitionId,
+      userId,
+      name,
+      comment,
+    });
+
+    await signature.save();
+
+    res.status(201).json({
+      message: "Petition signed successfully",
+      signature,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error signing petition", error: error.message });
+  }
+};
+
+
+export const getPetitionSignatures = async (req, res) => {
+  try {
+    const petitionId = req.params.id;
+    const signatures = await SignatureModel.find({ petitionId }).populate("userId", "name email");
+    res.status(200).json({
+      total: signatures.length,
+      supporters: signatures,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching signatures", error: error.message });
+  }
+};
+
+export const filterPetitions = async (req, res) => { 
+  try {
+    const filter = queryFilter(req.query); 
+    const petitions = await PetitionModel.find(filter); 
+    res.status(200).json(petitions);
+    
+  } catch (error) {
+    res.status(500).json({ message: "Error filtering petitions", error: error.message });
+    console.log(error)
+  }
+} 
+
+export const updatePetitionStatus = async (req, res) => {
+  try {
+    const { petitionId } = req.params;
+    const { status } = req.body;
+
+    // Allowed statuses
+    const validStatuses = ["Active", "Under Review", "Resolved" , "Rejected" ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status provided" });
+    }
+
+    const petition = await PetitionModel.findByIdAndUpdate(
+      petitionId,
+      { status },
+      { new: true }
+    );
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    res.status(200).json({
+      message: "Petition status updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating petition status:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+export const getMySignedPetitions = async (req, res) => {
+  try {
+    const userId = req.user.id; // comes from JWT middleware
+
+    // Find all signatures by this user
+    const signatures = await SignatureModel.find({ userId }).populate("petitionId");
+
+    if (!signatures.length) {
+      return res.status(200).json({
+        message: "You have not signed any petitions yet.",
+        petitions: [],
+      });
+    }
+
+    // Extract petitions from signatures
+    const petitions = signatures.map((sig) => sig.petitionId);
+
+    res.status(200).json({
+      message: "Signed petitions fetched successfully",
+      total: petitions.length,
+      petitions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching signed petitions",
+      error: error.message,
+    });
+  }
+};

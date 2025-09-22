@@ -72,7 +72,7 @@ export default function RegisterForm() {
       />
       <input
         type="text"
-        placeholder="Location (e.g. Guntur, AP)"
+        placeholder="Location (e.g New Delhi)"
         className="input"
         value={location}
         onChange={(e) => setLocation(e.target.value)}
@@ -97,7 +97,7 @@ export default function RegisterForm() {
             checked={role === "official"}
             onChange={() => setRole("official")}
           />{" "}
-          Public Official
+           Official
         </label>
       </div>
 

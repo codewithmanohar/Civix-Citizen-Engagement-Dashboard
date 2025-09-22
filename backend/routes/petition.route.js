@@ -1,28 +1,49 @@
 import express from "express"; 
 import { jwtAuthMiddleware } from "../middlewares/auth.js";
-import {
-  createPetition,
-  deletePetition,
-  getAllPetitions,
-  getPetitionById,
-  updatePetition,
+import { 
+  createPetition, 
+  deletePetition, 
+  filterPetitions, 
+  getAllPetitions, 
+  getMySignedPetitions, 
+  getPetitionById, 
+  getPetitionSignatures, 
+  signPetition, 
+  updatePetition, 
+  updatePetitionStatus 
 } from "../controllers/petition.controller.js";
+import { roleCheck } from "../middlewares/role.js";
 
 const router = express.Router();
 
 // Create a new petition
 router.post("/create", jwtAuthMiddleware, createPetition);
 
-// Get all petitions
-router.get("/petitions", jwtAuthMiddleware, getAllPetitions);
+// Get All Petitions
+router.get("/", jwtAuthMiddleware, getAllPetitions); 
 
-// Get a specific petition by ID (for View Details)
-router.get("/petition/:id", jwtAuthMiddleware, getPetitionById);
+// Filter Petitions
+router.get("/filter", jwtAuthMiddleware, filterPetitions);
 
-// Update a petition by ID
-router.put("/update/:id", jwtAuthMiddleware, updatePetition);
+// Get signed petitions by user
+router.get("/my-signed", jwtAuthMiddleware, getMySignedPetitions);
 
-// Delete a petition by ID
-router.delete("/delete/:id", jwtAuthMiddleware, deletePetition);
+// Get Petition By ID
+router.get("/:id", jwtAuthMiddleware, getPetitionById);
+
+// Update Petition
+router.put("/update/:id", jwtAuthMiddleware, updatePetition); 
+
+// Sign Petition
+router.post("/sign/:id", jwtAuthMiddleware, signPetition); 
+
+// Get Signature count
+router.get("/signature/:id", jwtAuthMiddleware, getPetitionSignatures);
+
+// Delete Petition
+router.delete("/delete/:id", jwtAuthMiddleware, roleCheck, deletePetition); 
+
+// Update Status Petition
+router.put("/petition/:petitionId/status", jwtAuthMiddleware, roleCheck, updatePetitionStatus);
 
 export default router;

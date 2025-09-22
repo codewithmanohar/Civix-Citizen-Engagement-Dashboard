@@ -1,36 +1,52 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Hero from "./components/Hero";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar"; // File doesn't exist
 import Footer from "./components/Footer";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import ForgotPassword from "./components/Forgotpassword";
 import SetNewPassword from "./components/SetNewPassword";
-import CitizenDashboard from "./components/CitizenDashboard";
-import PetitionPage from "./components/PetitionPage";
+import CitizenDashboard from "./pages/CitizenDashboard";
+import PetitionPage from "./pages/PetitionPage";
 import CreatePetition from "./components/CreatePetition";
-import OfficialDashboard from "./components/OfficialDashboard";
-import OfficialPendingPetitions from "./components/OfficialPendingPetitions";
-import OfficialApprovedPetitions from "./components/OfficialApprovedPetitions";
+import OfficialDashboard from "./pages/OfficialDashboard";
+import OfficialActivePetitions from "./components/OfficialActivePetitions";
+import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";
 import OfficialPetitionView from "./components/OfficialPetitionView";
-import OfficialLayout from "./components/OfficialLayout";
+import OfficialLayout from "./components/Layouts/OfficialLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { ToastContainer } from "react-toastify";
 import petitionsData from "./components/petitionData";
-import SignPetition from "./components/SignPetition";
+import SignPetition from "./pages/SignPetition";
 import PetitionDetails from "./components/PetitionDetails";
 import PetitionDetailsPage from "./components/PetitionDetailsPage";
+import Layout from "./components/Layouts/Layout";
+import NotFound from "./pages/NotFoundPage";
+import ViewPetition from "./pages/ViewPetitions";
+import HelpSupport from "./pages/HelpSupport";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import CivixPollsPage from "./pages/Civixpollspage";
+import PollCreationPage from "./components/Pollscreation";
+import PollVotingPage from "./pages/Pollsvotingpage";
+import Profile from "./pages/Profile";
+import AuthRedirect from "./components/Auth/AuthRedirect";
 
+// Toastify
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ State for petitions and approvals
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [petitions, setPetitions] = useState(() => {
     const saved = localStorage.getItem('petitions');
@@ -45,16 +61,15 @@ export default function App() {
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
 
-  // ✅ When a petition is signed
   const handleSignPetition = (id, signer) => {
     setPetitions((prev) =>
       prev.map((petition) =>
         petition.id === id
           ? {
-              ...petition,
-              signatures: petition.signatures + 1,
-              signedBy: [...(petition.signedBy || []), signer],
-            }
+            ...petition,
+            signatures: petition.signatures + 1,
+            signedBy: [...(petition.signedBy || []), signer],
+          }
           : petition
       )
     );
@@ -68,83 +83,120 @@ export default function App() {
     "/dashboard/citizen",
     "/dashboard/official",
     "/petitions",
+    "/polls",
   ];
   const shouldHideNavbar = hideNavbarPrefixes.some((p) =>
     location.pathname.startsWith(p)
   );
-  const hideFooterOnHome = location.pathname === "/";
+  const hideFooterOnHome =
+    location.pathname === "/" ||
+    location.pathname.startsWith("/dashboard/official") ||
+    location.pathname.startsWith("/dashboard/citizen") ||
+    location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/forgot-password");
+
+
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const isLogin = location.pathname.startsWith("/login");
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {!shouldHideNavbar && <Navbar />}
+    <div className="flex flex-col min-h-screen bg-blue-50">
+      {/* !shouldHideNavbar && <Navbar /> */}
       <div
-        className={`flex-grow w-full ${
-          isDashboard ? "" : "max-w-screen-xl mx-auto"
-        }`}
+        className={`flex-grow w-full ${isDashboard || isLogin ? "" : "max-w-screen-xl mx-auto"
+          }`}
       >
         <Routes>
-          {/* Public */}
-          <Route path="/" element={<Hero />} />
+          {/* Public with AuthRedirect */}
+          <Route
+            path="/"
+            element={
+              <AuthRedirect>
+                <Hero />
+              </AuthRedirect>
+            }
+          />
           <Route
             path="/login"
             element={
-              <LoginForm
-                onForgotPassword={() => navigate("/forgot-password")}
-                onSwitchToRegister={() => navigate("/register")}
-              />
+              <AuthRedirect>
+                <LoginForm
+                  onForgotPassword={() => navigate("/forgot-password")}
+                  onSwitchToRegister={() => navigate("/register")}
+                />
+              </AuthRedirect>
             }
           />
-          <Route path="/register" element={<RegisterForm />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/set-new-password" element={<SetNewPassword />} />
-          <Route path="/dashboard/citizen/petition/:id" element={<PetitionDetailsPage />} />
+          <Route
+            path="/register"
+            element={
+              <AuthRedirect>
+                <RegisterForm />
+              </AuthRedirect>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <AuthRedirect>
+                <ForgotPassword />
+              </AuthRedirect>
+            }
+          />
+          <Route
+            path="/set-new-password"
+            element={
+              <AuthRedirect>
+                <SetNewPassword />
+              </AuthRedirect>
+            }
+          />
 
           {/* Citizen */}
           <Route
-            path="/dashboard/citizen"
+            path="/dashboard/citizen/*"
             element={
               <ProtectedRoute allowedRole="citizen">
-                <CitizenDashboard />
+                <Layout />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/dashboard/citizen/petitions"
-            element={
-              <ProtectedRoute allowedRole="citizen">
-                <PetitionPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-              path="/dashboard/citizen/petition/:id"
+          >
+            <Route index element={<CitizenDashboard />} />
+            <Route
+              path="petitions"
               element={
-                <ProtectedRoute allowedRole="citizen">
-                  <PetitionDetailsPage />
-                </ProtectedRoute>
+                <PetitionPage
+                  petitions={petitions}
+                  setPetitions={setPetitions}
+                  onSign={handleSignPetition}
+                />
               }
             />
-          <Route
-            path="/dashboard/citizen/create-petition"
-            element={
-              <ProtectedRoute allowedRole="citizen">
-                <CreatePetition />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/citizen/sign/:id"
-            element={
-              <ProtectedRoute allowedRole="citizen">
-                <SignPetition onSign={handleSignPetition} />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="petition/:id"
+              element={<PetitionDetailsPage />}
+            />
+            <Route
+              path="create-petition"
+              element={<CreatePetition setPetitions={setPetitions} />}
+            />
+            <Route
+              path="sign/:id"
+              element={<SignPetition onSign={handleSignPetition} />}
+            />
+            <Route path="view/:id" element={<ViewPetition />} />
+            <Route path="polls" element={<CivixPollsPage />} />
+            <Route path="polls/create" element={<PollCreationPage />} />
+            <Route path="polls/:id" element={<PollVotingPage />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<HelpSupport />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
 
           {/* Official */}
           <Route
-            path="/dashboard/official"
+            path="/dashboard/official/*"
             element={
               <ProtectedRoute allowedRole="official">
                 <OfficialLayout />
@@ -153,37 +205,30 @@ export default function App() {
           >
             <Route index element={<OfficialDashboard />} />
             <Route
-              path="petitions/pending"
+              path="active-petitions"
               element={
-                <OfficialPendingPetitions addToApproved={addToApproved} />
-              }
-            />
-            <Route
-              path="petitions/approved"
-              element={
-                <OfficialApprovedPetitions
-                  approvedPetitions={approvedPetitions}
+                <OfficialActivePetitions
+                  petitions={petitions}
+                  addToApproved={addToApproved}
                 />
               }
             />
             <Route
-              path="petitions/resolved"
+              path="under-review"
+              element={<OfficialUnderReviewPetitions />}
+            />
+            <Route
+              path="resolved"
               element={<OfficialResolvedPetitions />}
             />
             <Route
-              path="petitions/view/:id"
+              path="petition/:id"
               element={<OfficialPetitionView />}
             />
-            <Route
-              path="create-petition"
-              element={
-                <ProtectedRoute allowedRole="official">
-                  <CreatePetition />
-                </ProtectedRoute>
-              }
-            />
           </Route>
-          
+
+          {/* Catch all */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
       {!hideFooterOnHome && <Footer />}
@@ -191,4 +236,3 @@ export default function App() {
     </div>
   );
 }
-
