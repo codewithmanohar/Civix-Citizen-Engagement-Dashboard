@@ -14,7 +14,7 @@ const CivixPollsPage = () => {
   const currentUserName = localStorage.getItem("name");
   const currentUserId = localStorage.getItem("userId"); // We'll need to store this during login
 
-  const tabs = ["all", "mine", "closed"];
+  const tabs = ["all", "mine"];
 
   const fetchPolls = async (tabType = "all") => {
     setLoading(true);
@@ -84,10 +84,7 @@ const CivixPollsPage = () => {
   // Filter polls based on location and closed status (My Polls is handled by backend)
   const filteredPolls = polls
     .filter(p => p) // remove null/undefined
-    .filter(p => {
-      if (selectedTab === "closed") return p.isClosed === true;
-      return true; // "all" and "mine" are handled by backend
-    })
+    .filter(p => !p.isClosed)
     .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation);
 
   const handleVote = (poll) => {
@@ -104,7 +101,16 @@ const CivixPollsPage = () => {
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
       {/* Header */}
       <div className="bg-blue-50 px-6 py-4 border-b shadow flex-shrink-0">
+        <div className="flex justify-between items-center mb-4">
         <h1 className="text-blue-900 text-3xl font-bold mb-4">Polls</h1>
+        <button
+            onClick={() => navigate("/dashboard/citizen/polls/create")}
+            className="mt-4 px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
+          >
+            Create a Poll
+          </button>
+          </div>
+
 
         <div className="flex flex-wrap justify-between items-center gap-4">
           {/* Tabs */}
@@ -122,6 +128,7 @@ const CivixPollsPage = () => {
                 {tab === "all" ? "All Polls" : tab === "mine" ? "My Polls" : "Closed Polls"}
               </button>
             ))}
+            
           </div>
 
           {/* Location Filter */}

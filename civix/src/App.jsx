@@ -1,13 +1,14 @@
 // src/App.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Routes,
   Route,
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import Hero from "./components/Hero";
-// import Navbar from "./components/Navbar"; // File doesn't exist
+//import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
@@ -25,8 +26,6 @@ import OfficialLayout from "./components/Layouts/OfficialLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import petitionsData from "./components/petitionData";
 import SignPetition from "./pages/SignPetition";
-import PetitionDetails from "./components/PetitionDetails";
-import PetitionDetailsPage from "./components/PetitionDetailsPage";
 import Layout from "./components/Layouts/Layout";
 import NotFound from "./pages/NotFoundPage";
 import ViewPetition from "./pages/ViewPetitions";
@@ -48,15 +47,7 @@ export default function App() {
   const navigate = useNavigate();
 
   const [approvedPetitions, setApprovedPetitions] = useState([]);
-  const [petitions, setPetitions] = useState(() => {
-    const saved = localStorage.getItem('petitions');
-    return saved ? JSON.parse(saved) : petitionsData;
-  });
-
-  // Save petitions to localStorage whenever petitions change
-  useEffect(() => {
-    localStorage.setItem('petitions', JSON.stringify(petitions));
-  }, [petitions]);
+  const [petitions, setPetitions] = useState(petitionsData);
 
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
@@ -100,19 +91,20 @@ export default function App() {
   const isLogin = location.pathname.startsWith("/login");
 
   return (
-    <div className="flex flex-col min-h-screen bg-blue-50">
-      {/* !shouldHideNavbar && <Navbar /> */}
+    <div className="flex flex-col min-h-screen bg-blue-20">
+      {location.pathname === "/" && (
+      <nav className="flex justify-between items-center px-10 py-6 text-blue-900">
+        <div className="text-3xl font-extrabold tracking-wide">CIVIX</div>
+      </nav>
+    )}
       <div
         className={`flex-grow w-full ${isDashboard || isLogin ? "" : "max-w-screen-xl mx-auto"
           }`}
       >
         <Routes>
-<<<<<<< HEAD
-=======
           <Route path="/polls" element={<CivixPollsPage />} />
-          <Route path="/polls/create" element={<PollCreationPage />} />
-          <Route path="/polls/:id" element={<PollVotingPage />} />
->>>>>>> df5c8f0462b43f71efe00f3248aafcfff631a59b
+<Route path="/polls/create" element={<PollCreationPage />} />
+<Route path="/polls/:id" element={<PollVotingPage />} />
           {/* Public with AuthRedirect */}
           <Route
             path="/"
@@ -179,10 +171,6 @@ export default function App() {
               }
             />
             <Route
-              path="petition/:id"
-              element={<PetitionDetailsPage />}
-            />
-            <Route
               path="create-petition"
               element={<CreatePetition setPetitions={setPetitions} />}
             />
@@ -194,11 +182,10 @@ export default function App() {
             <Route path="polls" element={<CivixPollsPage />} />
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
+             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="profile" element={<Profile />} />
             <Route path="help" element={<HelpSupport />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="profile" element={<Profile />} />
           </Route>
 
           {/* Official */}
@@ -212,32 +199,37 @@ export default function App() {
           >
             <Route index element={<OfficialDashboard />} />
             <Route
-              path="active-petitions"
+              path="petitions/pending"
+              element={<OfficialActivePetitions addToApproved={addToApproved} />}
+            />
+            <Route
+              path="petitions/approved"
               element={
-                <OfficialActivePetitions
-                  petitions={petitions}
-                  addToApproved={addToApproved}
+                <OfficialUnderReviewPetitions
+                  approvedPetitions={approvedPetitions}
                 />
               }
             />
             <Route
-              path="under-review"
-              element={<OfficialUnderReviewPetitions />}
-            />
-            <Route
-              path="resolved"
+              path="petitions/resolved"
               element={<OfficialResolvedPetitions />}
             />
-            <Route
-              path="petition/:id"
-              element={<OfficialPetitionView />}
-            />
+            <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
+            <Route path="create-petition" element={<CreatePetition />} />
+            <Route path="polls" element={<CivixPollsPage />} />
+            <Route path="polls/create" element={<PollCreationPage />} />
+            <Route path="polls/:id" element={<PollVotingPage />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<HelpSupport />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
-          {/* Catch all */}
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
+
       {!hideFooterOnHome && <Footer />}
       <ToastContainer position="top-center" autoClose={3000} />
     </div>

@@ -6,7 +6,7 @@ import api from "../lib/api";
 export default function PollCreationPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
-  const [options, setOptions] = useState(["Option 1", "Option 2"]);
+  const [options, setOptions] = useState(["",""]);
   const [targetLocation, setTargetLocation] = useState("San Diego");
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +16,7 @@ export default function PollCreationPage() {
     setOptions(newOptions);
   };
 
-  const handleAddOption = () => setOptions([...options, `Option ${options.length + 1}`]);
+  const handleAddOption = () => setOptions([...options, ""]);
 
   const handleRemoveOption = (index) => {
     if (options.length > 2) {

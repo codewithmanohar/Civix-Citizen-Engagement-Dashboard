@@ -66,8 +66,15 @@ const locations = [
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
       {/* Header */}
       <div className="bg-blue-50 px-6 py-4 border-b shadow flex-shrink-0">
+        <div className="flex justify-between items-center mb-4">
         <h1 className="text-blue-900 text-3xl font-bold mb-4">Petitions</h1>
-
+        <button
+      onClick={() => navigate("/dashboard/citizen/create-petition")}
+      className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
+    >
+      Create a Petition
+    </button>
+  </div>
         <div className="flex flex-wrap justify-between items-center gap-4">
           {/* Tabs */}
           <div className="flex gap-2">
@@ -106,8 +113,9 @@ const locations = [
             >
               <option>All</option>
               <option>Active</option>
-              <option>Closed</option>
+              <option>Under Review</option>
               <option>Resolved</option>
+              <option>Rejected</option>
             </select>
 
             <select
