@@ -3,10 +3,6 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export const jwtAuthMiddleware = (req , res, next) => {
-    console.log("Auth middleware called for:", req.path);
-    // Extract the jwt token from the request headers 
-    const authorization = req.headers.authorization; 
-    console.log("Authorization header:", authorization);
     
     if(!authorization) return res.status(401).json({message : "No authorization header provided"});
     const token = authorization.split(' ')[1]; 
