@@ -3,29 +3,38 @@ import { useNavigate } from "react-router-dom";
 import { createPetition } from "../lib/petitionService";
 
 export default function CreatePetition() {
-  const [formData, setFormData] = useState({
-    title: '',
-    change: '',
-    category: '',
-    signatureGoal: 100,
-    description: ''
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    title: "",
+    change: "",
+    category: "",
+    goal: 100,
+    description: "",
+    location: "",
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      await createPetition(formData);
-      navigate('/dashboard/citizen/petitions');
-    } catch (error) {
-      console.error('Error creating petition:', error);
+      await createPetition({
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        location: form.location || user.location || "Unknown", // fallback
+      });
+
+      alert("✅ Petition created successfully!");
+      navigate("/dashboard/citizen/petitions"); // redirect to petitions list
+    } catch (err) {
+      alert("❌ Failed to create petition. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +48,7 @@ export default function CreatePetition() {
         </h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Petition Title */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Petition Title
@@ -46,14 +56,15 @@ export default function CreatePetition() {
             <input
               type="text"
               name="title"
-              value={formData.title}
-              onChange={handleInputChange}
+              value={form.title}
+              onChange={handleChange}
               placeholder="Give your petition a clear, specific title"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
               required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
             />
           </div>
 
+          {/* Change */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Change
@@ -61,24 +72,24 @@ export default function CreatePetition() {
             <input
               type="text"
               name="change"
-              value={formData.change}
-              onChange={handleInputChange}
+              value={form.change}
+              onChange={handleChange}
               placeholder="State the change you want to see"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
-              required
             />
           </div>
 
+          {/* Category */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Category
             </label>
-            <select 
+            <select
               name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-blue-500"
+              value={form.category}
+              onChange={handleChange}
               required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Select a category</option>
               <option value="Environment">Environment</option>
@@ -90,35 +101,52 @@ export default function CreatePetition() {
             </select>
           </div>
 
+          {/* Signature Goal */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Signature Goal
             </label>
             <input
               type="number"
-              name="signatureGoal"
-              value={formData.signatureGoal}
-              onChange={handleInputChange}
-              min="1"
+              name="goal"
+              value={form.goal}
+              onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
             />
           </div>
 
+          {/* Location */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
+              Location
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              placeholder="City, State, or Region"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0"
+            />
+          </div>
+
+          {/* Description */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-800 mb-1">
               Description
             </label>
             <textarea
               name="description"
-              value={formData.description}
-              onChange={handleInputChange}
+              value={form.description}
+              onChange={handleChange}
               rows="3"
               placeholder="Explain the issue, why it matters, and what action you want"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0 resize-none"
               required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-200 focus:ring-0 resize-none"
             />
           </div>
 
+          {/* Info */}
           <div className="col-span-2 bg-blue-50 border-l-4 border-blue-500 text-gray-700 p-4 rounded-lg">
             <strong className="block mb-1">Important Information:</strong>
             <span>
@@ -126,6 +154,7 @@ export default function CreatePetition() {
             </span>
           </div>
 
+          {/* Submit */}
           <div className="col-span-2 text-center">
             <button
               type="submit"

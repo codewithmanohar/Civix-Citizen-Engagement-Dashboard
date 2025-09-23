@@ -74,7 +74,11 @@ const CitizenDashboard = () => {
 
   // --- Derived Stats ---
   const myPetitions = petitions.filter(p => p.createdBy?.name === user.name);
-  const successfulPetitions = petitions.filter(p => p.status === "Resolved");
+  //const successfulPetitions = petitions.filter(p => p.status === "Resolved");
+  const successfulPetitions = petitions.filter(
+  p => p.createdBy?.name === user.name && p.status === "Resolved"
+);
+
 
   // --- Normalize helper for categories ---
   const normalize = (str) => (str || "").trim().toLowerCase();
