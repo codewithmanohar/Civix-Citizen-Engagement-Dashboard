@@ -181,7 +181,7 @@ const CivixPollsPage = () => {
                   {poll.userHasVoted ? (
                     <button
                       onClick={() => handleStatus(poll)}
-                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[80px]"
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-w-[80px]"
                     >
                       Status
                     </button>
