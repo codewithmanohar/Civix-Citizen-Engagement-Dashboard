@@ -35,7 +35,6 @@ export const getPolls = async (req, res) => {
       polls.map(async (poll) => {
         // Get total vote count for this poll
         const voteCount = await Vote.countDocuments({ pollId: poll._id });
-        console.log(`Poll "${poll.title}" has ${voteCount} votes`);
         
         let userHasVoted = false;
         if (req.user && req.user.id) {
@@ -77,17 +76,7 @@ export const getMyPolls = async (req, res) => {
 };
 
 
-/*export const getPollById = async (req, res) => {
-  try {
-    const poll = await Poll.findById(req.params.id).populate("createdBy", "name email");
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
-    res.status(200).json(poll);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching poll", error: error.message });
-  }
-};*/
+
 export const getPollById = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.id).populate("createdBy", "name email");

@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import profile from "../assets/profile.png"
 import api from "../lib/api";
 import { FiUser, FiMail, FiMapPin, FiCalendar, FiShield, FiEdit2, FiX, FiSave } from "react-icons/fi";
+import Loading from "../components/Loaders/Loading";
 
 export default function Profile() {
   // Sample user data (replace with API fetch later)
   const [user, setUser] = useState({});
 
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: user.name,
     location: user.location,
@@ -46,8 +48,16 @@ const handleSave = async (e) => {
 
   useEffect(() => {
     const getUserProfile = async () => {
-      const res = await api.get("/auth/user");
-      setUser(res.data);
+      try {
+        setLoading(true);
+        const res = await api.get("/auth/user");
+        setUser(res.data);
+      } catch (error) {
+        console.log("Error in fectching Profile ", err.message);
+      }finally{
+        setLoading(false);
+      }
+      
     };
     getUserProfile();
   }, [editing]);
@@ -55,8 +65,7 @@ const handleSave = async (e) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex justify-center items-center p-6 ">
       <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-3xl">
-
-        {/* Profile Image */}
+          {/* Profile Image */}
         <div className="flex flex-col items-center mb-8">
           <img
             src={
@@ -68,8 +77,11 @@ const handleSave = async (e) => {
             className="w-32 h-32 rounded-full border-4 border-blue-200 object-cover shadow-md"
           />
         </div>
-
-        {/* User Details */}
+      {
+        loading 
+          ? <Loading /> 
+          : <>
+         {/* User Details */}
         {!editing ? (
           <div className="space-y-5 text-gray-700 text-lg">
             <p className="flex items-center gap-3">
@@ -165,7 +177,10 @@ const handleSave = async (e) => {
             </button>
           )}
         </div>
+          </>
+      }
       </div>
+      
     </div>
   );
 }
