@@ -6,6 +6,10 @@ const PetitionCard = ({ petition }) => {
   const navigate = useNavigate();
   const [signatureCount, setSignatureCount] = useState(0);
   const goal = petition.signatureGoal || petition.target || 100;
+  
+  const currentUser = localStorage.getItem("name");
+  const petitionCreator = petition.createdBy?.name;
+  const isOwnPetition = petitionCreator === currentUser;
 
   useEffect(() => {
     const fetchSignatures = async () => {
@@ -45,11 +49,11 @@ const PetitionCard = ({ petition }) => {
         <button
           onClick={() => navigate(`/dashboard/citizen/sign/${petition._id}`)}
           className={`px-3 py-1 text-white text-sm rounded ${
-            petition.status === "Active" 
+            petition.status === "Active" && !isOwnPetition
               ? "bg-green-600 hover:bg-green-700" 
               : "bg-gray-400 cursor-not-allowed"
           }`}
-          disabled={petition.status !== "Active"}
+          disabled={petition.status !== "Active" || isOwnPetition}
         >
           Sign Petition
         </button>

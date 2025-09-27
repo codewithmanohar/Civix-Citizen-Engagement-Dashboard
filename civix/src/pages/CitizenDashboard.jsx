@@ -74,10 +74,9 @@ const CitizenDashboard = () => {
 
   // --- Derived Stats ---
   const myPetitions = petitions.filter(p => p.createdBy?.name === user.name);
-  //const successfulPetitions = petitions.filter(p => p.status === "Resolved");
   const successfulPetitions = petitions.filter(
-  p => p.createdBy?.name === user.name && p.status === "Resolved"
-);
+    p => p.createdBy?.name === user.name && (p.status === "Resolved" || p.status === "Under Review" || p.status === "Approved")
+  );
 
 
   // --- Normalize helper for categories ---
@@ -174,19 +173,47 @@ const CitizenDashboard = () => {
 {loading ? (
   <p className="text-center text-blue-700">Loading petitions...</p>
 ) : (() => {
-    const filteredPetitions = nearbyPetition.filter((p) =>
-      selectedCategory === "All Categories"
+    const currentUserName = user.name || localStorage.getItem("name") || "";
+    const currentUserId = localStorage.getItem("userId") || "";
+    
+    const filteredPetitions = nearbyPetition.filter((p) => {
+      // Category filter
+      const matchesCategory = selectedCategory === "All Categories"
         ? true
-        : (p.category || "").toLowerCase().trim() ===
-          selectedCategory.toLowerCase().trim()
-    );
+        : (p.category || "").toLowerCase().trim() === selectedCategory.toLowerCase().trim();
+      
+      // Owner filter - exclude current user's petitions
+      const petitionCreatorName = (p.createdBy?.name || "").toLowerCase().trim();
+      const petitionCreatorId = p.createdBy?._id || p.createdBy?.id || "";
+      
+      const isOwnPetition = 
+        petitionCreatorName === currentUserName.toLowerCase().trim() ||
+        (currentUserId && petitionCreatorId && petitionCreatorId === currentUserId);
+      
 
-    if (filteredPetitions.length === 0) {
+      
+      return matchesCategory && !isOwnPetition;
+    });
+    
+    // Filter to show only petitions from other users
+    const finalFilteredPetitions = nearbyPetition.filter(p => {
+      const matchesCategory = selectedCategory === "All Categories" || 
+        (p.category || "").toLowerCase().trim() === selectedCategory.toLowerCase().trim();
+      
+      // Only show petitions NOT created by current user
+      const creatorName = (p.createdBy?.name || "").trim();
+      const currentName = (currentUserName || "").trim();
+      const isFromOtherUser = creatorName !== currentName && creatorName !== "";
+      
+      return matchesCategory && isFromOtherUser;
+    });
+
+    if (finalFilteredPetitions.length === 0) {
       return (
         <div className="text-center text-blue-700 py-10">
           <p>
             No petitions found in{" "}
-            <span className="font-semibold">{selectedCategory}</span>.
+            <span className="font-semibold">{selectedCategory}</span> from other users.
           </p>
         </div>
       );
@@ -194,7 +221,7 @@ const CitizenDashboard = () => {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredPetitions.map((petition) => (
+        {finalFilteredPetitions.map((petition) => (
           <PetitionCard key={petition._id} petition={petition} />
         ))}
       </div>
