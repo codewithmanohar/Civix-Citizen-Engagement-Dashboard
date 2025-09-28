@@ -36,6 +36,9 @@ import CivixPollsPage from "./pages/Civixpollspage";
 import PollCreationPage from "./components/Pollscreation";
 import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
+import OfficialReports from "./pages/OfficialReports";
+import OfficialPollsPage from "./pages/OfficialPollsPage";
+
 import AuthRedirect from "./components/Auth/AuthRedirect";
 
 // Toastify
@@ -218,12 +221,13 @@ export default function App() {
             />
             <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
             <Route path="create-petition" element={<CreatePetition />} />
-            <Route path="polls" element={<CivixPollsPage />} />
+            <Route path="polls" element={<OfficialPollsPage />} />
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<HelpSupport />} />
-            <Route path="reports" element={<Reports />} />
+            <Route path="reports" element={<OfficialReports />} />
+
             <Route path="profile" element={<Profile />} />
           </Route>
 

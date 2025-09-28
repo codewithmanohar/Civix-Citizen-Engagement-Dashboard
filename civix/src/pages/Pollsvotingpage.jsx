@@ -115,17 +115,22 @@ const PollVotingPage = () => {
       </div>
     );
   };
+const handleBack = () => {
+  if (location.state?.from) {
+    navigate(location.state.from);
+  } else {
+    const role = localStorage.getItem("role");
+    navigate(role === "official" ? "/dashboard/official/polls" : "/dashboard/citizen/polls");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
       <header className="w-full flex justify-between items-center py-4 px-6 bg-white shadow-md rounded-md mb-6">
         <div className="text-2xl font-bold text-blue-600">CIVIX</div>
         <button
-          onClick={() => {
-            navigate("/dashboard/citizen/polls");
-            // Force refresh the polls list
-            window.location.reload();
-          }}
+          onClick={handleBack}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
         >
           Back

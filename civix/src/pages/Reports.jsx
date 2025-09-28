@@ -1,7 +1,7 @@
 import React from 'react'
 import UnderProcess from '../components/UnderProcess'
 
-const Reports = () => {
+const HelpSupport = () => {
   return (
     <>
         <UnderProcess />
@@ -9,4 +9,4 @@ const Reports = () => {
   )
 }
 
-export default Reports
+export default HelpSupport
