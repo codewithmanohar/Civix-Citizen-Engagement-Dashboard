@@ -152,24 +152,7 @@ const PetitionPage = () => {
               </Routes>
             </div>
 
-            {/* Footer CTA */}
-            <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">
-              <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Have an issue that needs attention?
-                </h2>
-                <p className="text-gray-600 mt-2">
-                  Create a petition to gather support and bring visibility to the issues
-                  that matter most in your community.
-                </p>
-                <button
-                  onClick={() => navigate("/dashboard/citizen/create-petition")}
-                  className="mt-4 px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
-                >
-                  Create a Petition
-                </button>
-              </div>
-            </div>
+           
           </div>
       }
 

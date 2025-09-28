@@ -93,18 +93,18 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-blue-20">
       {location.pathname === "/" && (
-      <nav className="flex justify-between items-center px-10 py-6 text-blue-900">
-        <div className="text-3xl font-extrabold tracking-wide">CIVIX</div>
-      </nav>
-    )}
+        <nav className="flex justify-between items-center px-10 py-6 text-blue-900">
+          <div className="text-3xl font-extrabold tracking-wide">CIVIX</div>
+        </nav>
+      )}
       <div
         className={`flex-grow w-full ${isDashboard || isLogin ? "" : "max-w-screen-xl mx-auto"
           }`}
       >
         <Routes>
           <Route path="/polls" element={<CivixPollsPage />} />
-<Route path="/polls/create" element={<PollCreationPage />} />
-<Route path="/polls/:id" element={<PollVotingPage />} />
+          <Route path="/polls/create" element={<PollCreationPage />} />
+          <Route path="/polls/:id" element={<PollVotingPage />} />
           <Route path="/polls/create" element={<PollCreationPage />} />
           <Route path="/polls/:id" element={<PollVotingPage />} />
           {/* Public with AuthRedirect */}
@@ -184,7 +184,7 @@ export default function App() {
             <Route path="polls" element={<CivixPollsPage />} />
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
-             <Route path="profile" element={<Profile />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<HelpSupport />} />
             <Route path="reports" element={<Reports />} />
