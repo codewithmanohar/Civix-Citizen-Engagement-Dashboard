@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../lib/api";
-import { getAllPetitions } from "../lib/petitionService";
+import api from "../lib/api"; 
+import { getAllPetitions } from "../lib/petitionService"; 
 import PetitionCard from "../components/PetitionCard";
 import DotsLoader from "../components/Loaders/DotsLoader";
 import Loading from "../components/Loaders/Loading";
@@ -17,7 +17,6 @@ const CitizenDashboard = () => {
   });
 
   const [petitions, setPetitions] = useState([]);
-  const [nearbyPetition, setNearByPetition] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // --- Fetch Profile ---
@@ -52,10 +51,6 @@ const CitizenDashboard = () => {
       try {
         const data = await getAllPetitions();
         setPetitions(data);
-        
-        const response = await api.get(`petition/filter?location=${user.location}`);
-        setNearByPetition(response.data);
-
       } catch (err) {
         console.error("Failed to load petitions:", err);
       } finally {
@@ -72,41 +67,22 @@ const CitizenDashboard = () => {
 
   // --- Derived Stats ---
   const myPetitions = petitions.filter(p => p.createdBy?.name === user.name);
-  const successfulPetitions = petitions.filter(
-    p => p.createdBy?.name === user.name && (p.status === "Resolved" || p.status === "Under Review" || p.status === "Approved")
-  );
-
+  const successfulPetitions = petitions.filter(p => p.status === "Resolved");
 
   // --- Normalize helper for categories ---
   const normalize = (str) => (str || "").trim().toLowerCase();
 
   // --- Filter active petitions near user + category ---
-  // const activePetitions = petitions.filter(p => {
-  //   const petitionLocation = (p.location || "").toLowerCase().trim();
-  //   const userLoc = (user.location || "").toLowerCase().trim();
-  //   const matchesLocation = petitionLocation.includes(userLoc); // partial match
-  //   const matchesCategory =
-  //     selectedCategory === "All Categories"
-  //       ? true
-  //       : normalize(p.category) === normalize(selectedCategory);
-  //   return matchesLocation && matchesCategory;
-  // });
-
   const activePetitions = petitions.filter(p => {
     const petitionLocation = (p.location || "").toLowerCase().trim();
     const userLoc = (user.location || "").toLowerCase().trim();
-    const matchesLocation = petitionLocation.includes(userLoc);
-
+    const matchesLocation = petitionLocation.includes(userLoc); // partial match
     const matchesCategory =
       selectedCategory === "All Categories"
         ? true
         : normalize(p.category) === normalize(selectedCategory);
-
-    const isActive = ["Open", "Pending"].includes(p.status); // <-- important
-
-    return matchesLocation && matchesCategory && isActive;
+    return matchesLocation && matchesCategory;
   });
-
 
   return (
     <div className="flex-1 flex flex-col p-6 bg-blue-50 min-h-screen">
@@ -119,6 +95,7 @@ const CitizenDashboard = () => {
         </p>
       </section>
 
+      
       {/* Stats Section */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="p-5 bg-white rounded-lg shadow text-center">
@@ -144,6 +121,7 @@ const CitizenDashboard = () => {
         </div>
       </section>
 
+
       {/* Active Petitions Near You */}
       <section className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-xl font-semibold text-blue-900">
@@ -166,78 +144,37 @@ const CitizenDashboard = () => {
             <button
               key={index}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${selectedCategory === category
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                selectedCategory === category
                   ? "bg-blue-700 text-blue-50"
                   : "bg-blue-200 text-blue-800 hover:bg-blue-300"
-                }`}
+              }`}
             >
               {category}
             </button>
           ))}
         </div>
-
-        {/* Petition List */}
-        {loading ? (
-          <Loading />
-        ) : (() => {
-          const currentUserName = user.name || localStorage.getItem("name") || "";
-          const currentUserId = localStorage.getItem("userId") || "";
-
-          const filteredPetitions = nearbyPetition.filter((p) => {
-            // Category filter
-            const matchesCategory = selectedCategory === "All Categories"
-              ? true
-              : (p.category || "").toLowerCase().trim() === selectedCategory.toLowerCase().trim();
-
-            // Owner filter - exclude current user's petitions
-            const petitionCreatorName = (p.createdBy?.name || "").toLowerCase().trim();
-            const petitionCreatorId = p.createdBy?._id || p.createdBy?.id || "";
-
-            const isOwnPetition =
-              petitionCreatorName === currentUserName.toLowerCase().trim() ||
-              (currentUserId && petitionCreatorId && petitionCreatorId === currentUserId);
-
-
-
-            return matchesCategory && !isOwnPetition;
-          });
-
-          // Filter to show only petitions from other users
-          const finalFilteredPetitions = nearbyPetition.filter(p => {
-            const matchesCategory = selectedCategory === "All Categories" ||
-              (p.category || "").toLowerCase().trim() === selectedCategory.toLowerCase().trim();
-
-            // Only show petitions NOT created by current user
-            const creatorName = (p.createdBy?.name || "").trim();
-            const currentName = (currentUserName || "").trim();
-            const isFromOtherUser = creatorName !== currentName && creatorName !== "";
-
-            return matchesCategory && isFromOtherUser;
-          });
-        
-          if (finalFilteredPetitions.length === 0) {
-            return (
-              <div className="text-center text-blue-700 py-10">
-                <p>
-                  No petitions found in{" "}
-                  <span className="font-semibold">{selectedCategory}</span> from other users.
-                </p>
-              </div>
-            );
-          }
-
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {finalFilteredPetitions.map((petition) => (
-                <PetitionCard key={petition._id} petition={petition} />
-              ))}
-            </div>
-          );
-        })()}
+         {loading ? (
+  <Loading />
+) : activePetitions.length === 0 ? (
+  <div className="text-center text-blue-700 py-10">
+    <p>No petitions found with the current filters.</p>
+  </div>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {activePetitions.map((petition) => (
+      <PetitionCard key={petition._id} petition={petition} />
+    ))}
+  </div>
+)}
 
       </section>
     </div>
   );
 };
+
+
+
+       
 
 export default CitizenDashboard;

@@ -2,14 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 
-const PetitionCard = ({ petition }) => {
+const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions }) => {
   const navigate = useNavigate();
   const [signatureCount, setSignatureCount] = useState(0);
   const goal = petition.signatureGoal || petition.target || 100;
-  
-  const currentUser = localStorage.getItem("name");
-  const petitionCreator = petition.createdBy?.name;
-  const isOwnPetition = petitionCreator === currentUser;
+
+  // Disable sign if:
+  // - Tab is "mine" or "signed"
+  // - Created by current user
+  // - Already signed by current user
+  const disableSign =
+    selectedTab === "mine" ||
+    selectedTab === "signed" ||
+     petition.createdBy?.name === currentUser || // compare by name
+  (mySignedPetitions || []).some((p) => p && p._id === petition._id);
 
   useEffect(() => {
     const fetchSignatures = async () => {
@@ -24,13 +30,11 @@ const PetitionCard = ({ petition }) => {
   }, [petition._id]);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col h-full">
+    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
       <h2 className="text-lg font-semibold mb-2">{petition.title}</h2>
 
       {petition.description && (
-        <p className="text-sm text-gray-600 mb-2 line-clamp-3">
-          {petition.description}
-        </p>
+        <p className="text-sm text-gray-600 mb-2 line-clamp-3">{petition.description}</p>
       )}
 
       <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
@@ -38,7 +42,7 @@ const PetitionCard = ({ petition }) => {
         Signatures: {signatureCount} / {goal}
       </p>
 
-      <div className="flex gap-2 mt-auto">
+      <div className="flex gap-2">
         <button
           onClick={() => navigate(`/dashboard/citizen/view/${petition._id}`)}
           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -47,13 +51,15 @@ const PetitionCard = ({ petition }) => {
         </button>
 
         <button
-          onClick={() => navigate(`/dashboard/citizen/sign/${petition._id}`)}
-          className={`px-3 py-1 text-white text-sm rounded ${
-            petition.status === "Active" && !isOwnPetition
-              ? "bg-green-600 hover:bg-green-700" 
-              : "bg-gray-400 cursor-not-allowed"
+          onClick={() =>
+            !disableSign && navigate(`/dashboard/citizen/sign/${petition._id}`)
+          }
+          disabled={disableSign}
+          className={`px-3 py-1 text-sm rounded transition ${
+            disableSign
+              ? "bg-gray-400 text-white cursor-not-allowed"
+              : "bg-green-600 text-white hover:bg-green-700"
           }`}
-          disabled={petition.status !== "Active" || isOwnPetition}
         >
           Sign Petition
         </button>
