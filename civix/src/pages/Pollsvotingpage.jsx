@@ -91,7 +91,7 @@ const PollVotingPage = () => {
   if (!poll) return null;
 
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
-  const barColor = "#4caf50";
+  const barColor = "#2563eb";
 
   const renderBar = (opt) => {
     const count = votes[opt.optionText] || 0;

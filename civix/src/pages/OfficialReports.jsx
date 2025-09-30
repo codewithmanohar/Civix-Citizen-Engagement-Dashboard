@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from "react";
 
 import {
   PieChart,
@@ -20,7 +20,17 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
 
+// PDF Viewer
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+
 export default function ReportsPage() {
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+
   // Sample Data
   const petitionCategories = [
     { name: "Environment", value: 40 },
@@ -40,19 +50,19 @@ export default function ReportsPage() {
     { month: "Mar", petitions: 28, polls: 60 },
     { month: "Apr", petitions: 45, polls: 90 },
     { month: "May", petitions: 38, polls: 75 },
-     { month: "Jun", petitions: 42, polls: 85 },
-  { month: "Jul", petitions: 30, polls: 60 },
-  { month: "Aug", petitions: 50, polls: 95 },
-  { month: "Sep", petitions: 40, polls: 70 },
-  { month: "Oct", petitions: 55, polls: 100 },
-  { month: "Nov", petitions: 48, polls: 80 },
-  { month: "Dec", petitions: 60, polls: 110 },
+    { month: "Jun", petitions: 42, polls: 85 },
+    { month: "Jul", petitions: 30, polls: 60 },
+    { month: "Aug", petitions: 50, polls: 95 },
+    { month: "Sep", petitions: 40, polls: 70 },
+    { month: "Oct", petitions: 55, polls: 100 },
+    { month: "Nov", petitions: 48, polls: 80 },
+    { month: "Dec", petitions: 60, polls: 110 },
   ];
 
   const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"];
 
-// --- Export Functions ---
-  const handleDownloadPDF = () => {
+  // --- Export Functions ---
+  const generatePDF = () => {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -80,6 +90,19 @@ export default function ReportsPage() {
       body: trendsData.map((t) => [t.month, t.petitions, t.polls]),
     });
 
+    return doc;
+  };
+
+  const handlePreviewPDF = () => {
+    const doc = generatePDF();
+    const pdfBlob = doc.output("blob");
+    const url = URL.createObjectURL(pdfBlob);
+    setPdfUrl(url);
+    setShowPdfModal(true); // open modal
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = generatePDF();
     doc.save("official_reports.pdf");
   };
 
@@ -90,8 +113,7 @@ export default function ReportsPage() {
       trends: trendsData,
     };
 
-    // Flatten to CSV
-    const csv = Papa.unparse(allData.trends); // you can merge other data too
+    const csv = Papa.unparse(allData.trends);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -110,10 +132,10 @@ export default function ReportsPage() {
 
       {/* Petition Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Petitions" value="250" />
+        <StatCard label="Total Petitions" value="50" />
         <StatCard label="Pending" value="45" />
-        <StatCard label="Approved/Review" value="120" />
-        <StatCard label="Resolved" value="85" />
+        <StatCard label="Approved/Review" value="12" />
+        <StatCard label="Resolved" value="15" />
       </div>
 
       {/* Category Breakdown & Polls */}
@@ -139,8 +161,12 @@ export default function ReportsPage() {
             Polls Insights
           </h2>
           <ul className="space-y-2 mb-6">
-            <li>📌 Total Polls: <b>25</b></li>
-            <li>🗳 Voter Turnout: <b>65%</b></li>
+            <li>
+              📌 Total Polls: <b>25</b>
+            </li>
+            <li>
+              🗳 Voter Turnout: <b>65%</b>
+            </li>
           </ul>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -154,7 +180,10 @@ export default function ReportsPage() {
                 label
               >
                 {pollStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Legend />
@@ -207,6 +236,12 @@ export default function ReportsPage() {
       {/* Export Options */}
       <div className="flex space-x-4 mt-8">
         <button
+          onClick={handlePreviewPDF}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          Preview PDF
+        </button>
+        <button
           onClick={handleDownloadPDF}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
@@ -219,12 +254,38 @@ export default function ReportsPage() {
           Download CSV
         </button>
       </div>
+     {/* PDF Modal */}
+{showPdfModal && pdfUrl && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-[80vh] rounded-lg shadow-lg relative">
+      
+      {/* X Close Button */}
+      <div className="flex justify-end p-2 border-b">
+    <button
+      className="text-black text-2xl font-bold hover:text-red-600"
+      onClick={() => setShowPdfModal(false)}
+    >
+      ×
+    </button>
+  </div>
+
+
+      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+        <Viewer
+          fileUrl={pdfUrl}
+          plugins={[defaultLayoutPluginInstance]}
+        />
+      </Worker>
+    </div>
+  </div>
+)}
+
+      
     </div>
   );
 }
 
 /* --- Small Components --- */
-
 function StatCard({ label, value }) {
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md border-l-4 border-blue-500">

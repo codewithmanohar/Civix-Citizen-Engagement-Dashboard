@@ -1,5 +1,4 @@
-// CitizenReports.jsx
-import React from "react";
+import React, { useState } from "react";
 import {
   PieChart,
   Pie,
@@ -12,9 +11,19 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
 
+// PDF Viewer
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+
 const COLORS = ["#1D4ED8", "#10b981", "#3b82f6", "#93C5FD"];
 
 const CitizenReports = ({ petitions, polls }) => {
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+
   // Default sample data if no props passed
   const samplePetitions = [
     { id: 1, status: "Active" },
@@ -50,8 +59,8 @@ const CitizenReports = ({ petitions, polls }) => {
     { name: "Closed", value: pollsData.filter(p => p.status === "Closed").length || 1 },
   ];
 
-  // --- Export functions ---
-  const handleDownloadPDF = () => {
+  // --- Generate PDF ---
+  const generatePDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("Civix - Citizen Reports", 14, 20);
@@ -71,6 +80,20 @@ const CitizenReports = ({ petitions, polls }) => {
       body: pollStatusData.map(p => [p.name, p.value]),
     });
 
+    return doc;
+  };
+
+  // --- Preview PDF ---
+  const handlePreviewPDF = () => {
+    const doc = generatePDF();
+    const pdfBlob = doc.output("blob");
+    const url = URL.createObjectURL(pdfBlob);
+    setPdfUrl(url);
+    setShowPdfModal(true);
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = generatePDF();
     doc.save("citizen_reports.pdf");
   };
 
@@ -154,6 +177,12 @@ const CitizenReports = ({ petitions, polls }) => {
       {/* Export Buttons */}
       <div className="flex space-x-4 mt-8">
         <button
+          onClick={handlePreviewPDF}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          Preview PDF
+        </button>
+        <button
           onClick={handleDownloadPDF}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
@@ -166,6 +195,28 @@ const CitizenReports = ({ petitions, polls }) => {
           Download CSV
         </button>
       </div>
+
+      {/* PDF Modal */}
+      {showPdfModal && pdfUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-[80vh] rounded-lg shadow-lg relative">
+            
+            {/* X Close Button */}
+            <div className="flex justify-end p-2 border-b">
+              <button
+                className="text-black text-2xl font-bold hover:text-red-600"
+                onClick={() => setShowPdfModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+              <Viewer fileUrl={pdfUrl} plugins={[defaultLayoutPluginInstance]} />
+            </Worker>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
