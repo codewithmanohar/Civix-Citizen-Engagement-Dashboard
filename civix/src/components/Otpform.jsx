@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import api from "../lib/api"; // make sure you import your axios instance
 
-export default function OtpForm({ email }) {
+export default function OtpForm({ email, fromRegistration = false, fromForgotPassword = false }) {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [timeLeft, setTimeLeft] = useState(180);
   const navigate = useNavigate();
 
+  // Timer countdown
   useEffect(() => {
     if (timeLeft === 0) return;
     const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
+  // Handle OTP input
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return;
     const newOtp = [...otp];
@@ -21,12 +24,32 @@ export default function OtpForm({ email }) {
     if (element.value !== "" && element.nextSibling) element.nextSibling.focus();
   };
 
-  const handleNext = () => {
+  // Handle OTP verification
+  const handleNext = async () => {
     const enteredOtp = otp.join("").trim();
-    if (enteredOtp.length !== 6) return toast.error("Enter all 6 digits");
+    if (enteredOtp.length !== 6) {
+      toast.error("Enter all 6 digits");
+      return;
+    }
 
-    // ✅ Navigate directly to SetNewPassword with OTP in query params
-    navigate(`/set-new-password?email=${email}&otp=${enteredOtp}`);
+    try {
+      // Verify OTP
+      await api.post("/auth/verify-otp", { email, otp: enteredOtp });
+      // Show success toast
+      toast.success("✅ OTP verified successfully!");
+
+      // Navigate after a short delay so toast can be seen
+      setTimeout(() => {
+        if (fromRegistration) {
+          navigate("/login");
+        } else if (fromForgotPassword) {
+           navigate(`/set-new-password?email=${email}&otp=${enteredOtp}`);
+        }
+      }, 500);
+
+    } catch (err) {
+      toast.error(err.response?.data?.message || "OTP verification failed");
+    }
   };
 
   return (
@@ -65,5 +88,3 @@ export default function OtpForm({ email }) {
     </div>
   );
 }
-
-

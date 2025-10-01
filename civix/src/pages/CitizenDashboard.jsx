@@ -15,10 +15,11 @@ const CitizenDashboard = () => {
     role: localStorage.getItem("userRole") || "citizen",
     location: localStorage.getItem("location") || "Unknown",
   });
+  
 
   const [petitions, setPetitions] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const userId = localStorage.getItem("userId");
   // --- Fetch Profile ---
   useEffect(() => {
     const fetchProfile = async () => {
@@ -66,9 +67,9 @@ const CitizenDashboard = () => {
   };
 
   // --- Derived Stats ---
-  const myPetitions = petitions.filter(p => p.createdBy?.name === user.name);
-  const successfulPetitions = petitions.filter(p => p.status === "Resolved");
-
+  const myPetitions = petitions.filter(p => p.createdBy?._id === userId);
+  const mySuccessfulPetitions = petitions.filter(
+  (p) => p.status === "Resolved" && p.createdBy?._id === userId);
   // --- Normalize helper for categories ---
   const normalize = (str) => (str || "").trim().toLowerCase();
 
@@ -81,7 +82,8 @@ const CitizenDashboard = () => {
       selectedCategory === "All Categories"
         ? true
         : normalize(p.category) === normalize(selectedCategory);
-    return matchesLocation && matchesCategory;
+    const matchesStatus = normalize(p.status) === "active";
+    return matchesLocation && matchesCategory && matchesStatus;
   });
 
   return (
@@ -115,9 +117,10 @@ const CitizenDashboard = () => {
           {
             loading 
               ? <DotsLoader /> 
-              : <p className="text-3xl font-bold text-green-600 mt-2">{successfulPetitions.length}</p>
+              : <p className="text-3xl font-bold text-green-600 mt-2">{mySuccessfulPetitions.length}</p>
+
           }
-          <p className="text-sm text-blue-600">or under review</p>
+          <p className="text-sm text-blue-600">petitions</p>
         </div>
       </section>
 
@@ -163,7 +166,16 @@ const CitizenDashboard = () => {
 ) : (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
     {activePetitions.map((petition) => (
-      <PetitionCard key={petition._id} petition={petition} />
+      <PetitionCard
+  key={petition._id}
+  petition={petition}
+  selectedTab="active"   // or any label to indicate this section
+  currentUser={user.name}
+  mySignedPetitions={petitions.filter((p) =>
+    p.signatures?.some((s) => s?.userId === localStorage.getItem("userId"))
+  )}
+/>
+
     ))}
   </div>
 )}

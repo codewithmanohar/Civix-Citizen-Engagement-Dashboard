@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import OtpForm from "../components/Otpform";
+import OtpForm from "./OtpForm";
 import api from "../lib/api";
 
 export default function ForgotPassword({ onCancel }) {
@@ -11,10 +11,13 @@ export default function ForgotPassword({ onCancel }) {
     e.preventDefault();
     if (!email) return toast.error("Enter your email");
 
+    // Show OTP form immediately
+    setOtpSent(true);
+
+    // Send OTP in the background
     try {
       await api.post("/auth/send-otp", { email });
-      toast.success("OTP sent to your email!");
-      setOtpSent(true);
+      toast.success("✅ OTP sent to your email!");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");
     }
@@ -38,7 +41,10 @@ export default function ForgotPassword({ onCancel }) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <div className="flex gap-2">
-            <button type="submit" className="flex-1 bg-blue-900 text-white py-2 rounded-md">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-900 text-white py-2 rounded-md"
+            >
               Send OTP
             </button>
             <button 
@@ -51,7 +57,7 @@ export default function ForgotPassword({ onCancel }) {
           </div>
         </form>
       ) : (
-        <OtpForm email={email} />
+        <OtpForm email={email} fromForgotPassword={true} />
       )}
     </div>
   );

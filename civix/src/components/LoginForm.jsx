@@ -29,10 +29,14 @@ export default function LoginForm({ onForgotPassword, onSwitchToRegister, mode =
     }
 
     console.log("Login success:", res.data);
-  } catch (err) {
-    console.error("Login error:", err.response?.data || err.message);
-    toast.error(err.response?.data?.message || "Login failed");
-  }
+  }catch (err) {
+  console.error("Login error:", err.response?.data || err.message);
+
+  // Display the backend message
+  const message =
+    err.response?.data?.message || "Login failed. Please try again.";
+  toast.error(message);
+}
 };
 
 
@@ -87,3 +91,4 @@ export default function LoginForm({ onForgotPassword, onSwitchToRegister, mode =
     </div>
   );
 }
+

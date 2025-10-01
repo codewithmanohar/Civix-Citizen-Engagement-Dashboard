@@ -1,4 +1,5 @@
 // OfficialSidebar.jsx
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -18,11 +19,12 @@ const OfficialSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleSignout = () => {
-    localStorage.clear(); // ✅ clear session
-    navigate("/"); // ✅ redirect to homepage/login
-  };
-
+  const [showConfirm, setShowConfirm] = useState(false);
+  
+    const handleSignout = () => {
+      localStorage.clear();
+      navigate("/");
+    };
 
   const links = [
     { to: "/dashboard/official", label: "Dashboard", icon: Home },
@@ -108,18 +110,41 @@ const OfficialSidebar = () => {
           );
         })}
       </nav>
-       {/* ✅ Signout Button at bottom */}
-      <div className="p-4 border-t">
-        <button
-          onClick={handleSignout}
-          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-        >
-          <LogOut size={18} />
-          Signout
-        </button>
-      </div>
-    </div>
-  );
-};
+       {/* Signout Button */}
+             <div className="p-4 border-t">
+               <button
+                 onClick={() => setShowConfirm(true)}
+                 className="flex items-center gap-3 w-full px-4 py-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+               >
+                 <LogOut size={18} />
+                 Signout
+               </button>
+             </div>
+       
+             {/* Custom Popup */}
+             {showConfirm && (
+               <div className="fixed top-4 left-1/2 -translate-x-1/2 w-80 bg-white shadow-lg border border-gray-200 rounded-lg p-4 z-50">
+                 <p className="text-gray-800 font-medium mb-3">
+                   Are you sure you want to sign out?
+                 </p>
+                 <div className="flex justify-end gap-2">
+                   <button
+                     onClick={() => setShowConfirm(false)}
+                     className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     onClick={handleSignout}
+                     className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                   >
+                     Sign Out
+                   </button>
+                 </div>
+               </div>
+             )}
+           </div>
+         );
+       };
 
 export default OfficialSidebar;

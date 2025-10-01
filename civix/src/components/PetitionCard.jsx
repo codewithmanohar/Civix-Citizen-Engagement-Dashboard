@@ -6,7 +6,7 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
   const navigate = useNavigate();
   const [signatureCount, setSignatureCount] = useState(0);
   const goal = petition.signatureGoal || petition.target || 100;
-
+  const userId = localStorage.getItem("userId");
   // Disable sign if:
   // - Tab is "mine" or "signed"
   // - Created by current user
@@ -14,7 +14,7 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
   const disableSign =
     selectedTab === "mine" ||
     selectedTab === "signed" ||
-     petition.createdBy?.name === currentUser || // compare by name
+     petition.createdBy?._id === userId || // compare by name
   (mySignedPetitions || []).some((p) => p && p._id === petition._id);
 
   useEffect(() => {

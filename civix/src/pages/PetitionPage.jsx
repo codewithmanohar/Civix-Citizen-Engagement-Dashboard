@@ -4,6 +4,7 @@ import { useNavigate, Routes, Route } from "react-router-dom";
 import SignPetition from "./SignPetition";
 import { getAllPetitions, getMySignedPetitions } from "../lib/petitionService";
 import Loading from "../components/Loaders/Loading";
+
 const PetitionPage = () => {
   const [petitions, setPetitions] = useState([]);
   const [mySignedPetitions, setMySignedPetitions] = useState([]);
@@ -15,13 +16,11 @@ const PetitionPage = () => {
 
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("name");
-
+  const userId = localStorage.getItem("userId");
   // Unique locations
   const locations = [
     "All Locations",
-    ...new Set(
-      petitions.filter((p) => p && p.location).map((p) => p.location)
-    ),
+    ...new Set(petitions.filter((p) => p && p.location).map((p) => p.location)),
   ];
 
   // Fetch petitions and signed petitions
@@ -29,7 +28,6 @@ const PetitionPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch signed petitions for disabling the button
         const signedData = await getMySignedPetitions();
         setMySignedPetitions(signedData.petitions || []);
 
@@ -48,17 +46,34 @@ const PetitionPage = () => {
     fetchData();
   }, [selectedTab]);
 
-  // Filtering
+  // Handle petition signed event
+  const handlePetitionSigned = (petitionId) => {
+    // Update petitions list signature count
+    setPetitions((prev) =>
+      prev.map((p) =>
+        p._id === petitionId
+          ? { ...p, signatureCount: (p.signatureCount || 0) + 1 }
+          : p
+      )
+    );
+  
+    // Move petition to "Signed by Me"
+    const signedPetition = petitions.find((p) => p._id === petitionId);
+    if (signedPetition && !mySignedPetitions.some((p) => p._id === petitionId)) {
+      setMySignedPetitions((prev) => [...prev, signedPetition]);
+    }
+  };
+
+  // Filtering petitions
   const filteredPetitions = petitions
     .filter((p) => p)
-    .filter((p) => selectedTab !== "mine" || p.createdBy?.name === currentUser)
+    .filter((p) => selectedTab !== "mine" || p.createdBy?._id === userId)
     .filter(
       (p) =>
         (selectedLocation === "All Locations" || p.location === selectedLocation) &&
         (selectedStatus === "All" || p.status === selectedStatus) &&
         (selectedCategory === "All Categories" || p.category === selectedCategory)
     );
-
 
   return (
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
@@ -74,9 +89,8 @@ const PetitionPage = () => {
           </button>
         </div>
 
-
+        {/* Tabs & Filters */}
         <div className="flex flex-wrap justify-between items-center gap-4">
-          {/* Tabs */}
           <div className="flex gap-2">
             {["all", "mine", "signed"].map((tab) => (
               <button
@@ -97,7 +111,6 @@ const PetitionPage = () => {
             ))}
           </div>
 
-          {/* Filters */}
           <div className="flex gap-3 ml-auto flex-wrap">
             <select
               value={selectedLocation}
@@ -137,33 +150,32 @@ const PetitionPage = () => {
           </div>
         </div>
       </div>
-     
 
-     {
-        loading
-          ? <Loading />
-          : <div>
-      {/* Petition Cards */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPetitions.map((petition) => (
-            <PetitionCard
-              key={petition._id}
-              petition={petition}
-              selectedTab={selectedTab}
-              currentUser={currentUser}
-              mySignedPetitions={mySignedPetitions} // ✅ Pass signed petitions
+      {loading ? (
+        <Loading />
+      ) : (
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPetitions.map((petition) => (
+              <PetitionCard
+                key={petition._id}
+                petition={petition}
+                selectedTab={selectedTab}
+                currentUser={currentUser}
+                mySignedPetitions={mySignedPetitions}
+              />
+            ))}
+          </div>
+
+          {/* Nested route for signing */}
+          <Routes>
+            <Route
+              path="sign/:id"
+              element={<SignPetition onSigned={handlePetitionSigned} />}
             />
-          ))}
+          </Routes>
         </div>
-
-        {/* Nested route for signing */}
-        <Routes>
-          <Route path="sign/:id" element={<SignPetition onSigned={() => {}} />} />
-        </Routes>
-      </div>
-      </div>
-      }
+      )}
 
       {/* Footer */}
       <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">

@@ -114,20 +114,21 @@ export default function App() {
           <Route
             path="/"
             element={
-              <AuthRedirect>
+                <AuthRedirect>
                 <Hero />
-              </AuthRedirect>
+                </AuthRedirect>
             }
           />
           <Route
             path="/login"
             element={
-              <AuthRedirect>
+               
                 <LoginForm
                   onForgotPassword={() => navigate("/forgot-password")}
                   onSwitchToRegister={() => navigate("/register")}
                 />
-              </AuthRedirect>
+                 
+              
             }
           />
           <Route
@@ -141,17 +142,17 @@ export default function App() {
           <Route
             path="/forgot-password"
             element={
-              <AuthRedirect>
+              
                 <ForgotPassword />
-              </AuthRedirect>
+          
             }
           />
           <Route
             path="/set-new-password"
             element={
-              <AuthRedirect>
+              
                 <SetNewPassword />
-              </AuthRedirect>
+             
             }
           />
 

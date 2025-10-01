@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import api from "../lib/api"; // <-- axios instance
+import api from "../lib/api"; // axios instance
+import OtpForm from "./OtpForm"; // OTP component
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -11,39 +12,49 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [location, setLocation] = useState("");
   const [role, setRole] = useState("citizen");
+  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    // Validation
     if (!name || !email || !password || !location) {
       toast.error("⚠️ Please fill all fields correctly.");
       return;
     }
-
     if (role === "official" && !email.endsWith(".gov.in")) {
       toast.error("⚠️ Public officials must use a government email.");
       return;
     }
 
     try {
-      const { data } = await api.post("/auth/register", {
-        name,
-        email,
-        password,
-        role,
-        location, // now a simple string
-      });
+      setLoading(true);
 
-      toast.success("🎉 Registered successfully! Please log in.");
+      // 1️⃣ Register user
+      await api.post("/auth/register", { name, email, password, role, location });
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      // 2️⃣ Show OTP form immediately
+      setOtpSent(true);
+      //toast.success("🎉 Registered successfully! Sending OTP...");
+
+      // 3️⃣ Send OTP in background
+      api.post("/auth/send-otp", { email })
+        .then(() => toast.success("OTP sent to your email for verification"))
+        .catch((err) => toast.error(err.response?.data?.message || "Failed to send OTP"));
+
     } catch (err) {
       toast.error(err.response?.data?.message || "❌ Registration failed.");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Render OTP form if OTP sent
+  if (otpSent) {
+    return <OtpForm email={email} fromRegistration={true} />;
+  }
 
   return (
     <form className="space-y-4" onSubmit={handleRegister}>
@@ -97,12 +108,16 @@ export default function RegisterForm() {
             checked={role === "official"}
             onChange={() => setRole("official")}
           />{" "}
-           Official
+          Official
         </label>
       </div>
 
-      <button type="submit" className="w-full bg-blue-900 text-white py-2 rounded-md">
-        Create Account
+      <button
+        type="submit"
+        className="w-full bg-blue-900 text-white py-2 rounded-md"
+        disabled={loading}
+      >
+        {loading ? "Registering..." : "Create Account"}
       </button>
     </form>
   );
