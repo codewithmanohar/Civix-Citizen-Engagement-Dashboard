@@ -28,7 +28,8 @@ export const createPoll = async (req, res) => {
 
 export const getPolls = async (req, res) => {
   try {
-    const polls = await Poll.find().populate("createdBy", "name email");
+    // // Fetch only polls with status "Active"
+    const polls = await Poll.find({ status: "Active" }).populate("createdBy", "name email");
     
     // Add vote counts and user voting status for each poll
     const pollsWithData = await Promise.all(
@@ -51,6 +52,7 @@ export const getPolls = async (req, res) => {
     );
     
     res.status(200).json(pollsWithData);
+
   } catch (error) {
     res.status(500).json({ message: "Error fetching polls", error: error.message });
   }
@@ -58,14 +60,11 @@ export const getPolls = async (req, res) => {
 
 export const getMyPolls = async (req, res) => {
   try {
-    console.log("getMyPolls called");
-    console.log("req.user:", req.user);
     
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
     }
     
-    console.log("User ID from token:", req.user.id);
     const polls = await Poll.find({ createdBy: req.user.id }).populate("createdBy", "name email");
     console.log("Found polls for user:", polls.length);
     res.status(200).json(polls);
@@ -75,6 +74,16 @@ export const getMyPolls = async (req, res) => {
   }
 };
 
+export const getClosedPolls = async (req , res) => {
+  try {
+
+    const polls = await Poll.find({status : "Closed"}); 
+    res.status(200).json({polls});
+
+  } catch (error) {
+    console.log("error to fetching the closed polls ")
+  }
+}
 
 
 export const getPollById = async (req, res) => {
@@ -97,33 +106,29 @@ export const getPollById = async (req, res) => {
 };
 
 
-export const deletePoll = async (req, res) => {
+export const closePoll = async (req, res) => {
   try {
-    const pollId = req.params.id;
-    const userId = req.user.id;
-    const userRole = req.user.role; // "citizen", "official"
+    const { pollId } = req.params;
 
     const poll = await Poll.findById(pollId);
     if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
+      return res.status(404).json({ success: false, message: "Poll not found" });
     }
 
-    // Only poll creator or an official can delete
-    if (poll.createdBy.toString() !== userId && userRole !== "official") {
-      return res.status(403).json({ message: "You are not authorized to delete this poll" });
+    if (poll.status === "Closed") {
+      return res.status(400).json({ success: false, message: "Poll is already closed" });
     }
 
-    // Delete poll
-    await Poll.findByIdAndDelete(pollId);
+    poll.status = "Closed";
+    await poll.save();
 
-    // Optional: Clean up related votes
-    await Vote.deleteMany({ pollId });
-
-    res.status(200).json({ message: "Poll deleted successfully" });
+    res.json({ success: true, message: "Poll closed successfully", poll });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting poll", error: error.message });
+    console.error("Error closing poll:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
 
 export const getPollResults = async (req, res) => {

@@ -101,14 +101,17 @@ const OfficialPollsPage = () => {
 };
 
 
-  const handleClosePoll = async (poll) => {
-    try {
-      await api.post(`/polls/${poll._id}/close`);
-      fetchPolls(selectedTab);
-    } catch (err) {
-      console.error("Error closing poll", err);
+ const handleClosePoll = async (pollId) => {
+  try {
+    const res = await api.patch(`/polls/${pollId}/close`);
+    if (res.data.success) {
+      alert("Poll closed successfully!");
     }
-  };
+  } catch (error) {
+    console.error("Error closing poll:", error);
+    alert("Failed to close poll");
+  }
+};
 
   const handleEditPoll = (poll) => {
     navigate(`/dashboard/official/polls/edit/${poll._id}`, { state: { poll } });
@@ -186,11 +189,11 @@ const OfficialPollsPage = () => {
                       onClick={() => handleViewResults(poll)}
                       className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[80px]"
                     >
-                      View Results
+                      View Result
                     </button>
                     {!poll.isClosed && (
                       <button
-                        onClick={() => handleClosePoll(poll)}
+                        onClick={() => handleClosePoll(poll._id)}
                         className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 min-w-[80px]"
                       >
                         Close Poll

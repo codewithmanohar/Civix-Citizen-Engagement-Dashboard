@@ -7,6 +7,7 @@ import petitionRoutes from './routes/petition.route.js';
 import dashboardRoutes from "./routes/dashboard.route.js"
 import pollsRoutes from "./routes/poll.route.js";
 import voteRoutes from "./routes/vote.route.js"
+import reportRoutes from "./routes/reports.routes.js"
 import cors from "cors"
 
 
@@ -19,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(cors({
   origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
 
@@ -38,6 +39,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use("/api/polls" , pollsRoutes);
 
 app.use("/api/vote" , voteRoutes);
+
+app.use("/api/reports", reportRoutes);
 
 app.listen(PORT ,()=> {
     console.log("Server is running on PORT :" , PORT);
