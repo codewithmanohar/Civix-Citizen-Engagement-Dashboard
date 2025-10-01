@@ -165,3 +165,73 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const validatePassword = async (req, res) => {
+  try {
+    const { currentPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (isValid) {
+      res.json({ valid: true });
+    } else {
+      res.status(400).json({ valid: false, message: "Invalid password" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.user.id, { password: hashedPassword });
+    
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const updateNotifications = async (req, res) => {
+  try {
+    const notifications = req.body;
+    
+    await User.findByIdAndUpdate(req.user.id, { 
+      notificationPreferences: notifications 
+    });
+    
+    res.json({ message: "Notification preferences updated" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
