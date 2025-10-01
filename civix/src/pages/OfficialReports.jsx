@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import {
   PieChart,
   Pie,
@@ -19,6 +18,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
+import api from "../lib/api";
 
 // PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
@@ -31,20 +31,20 @@ export default function ReportsPage() {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-  // Sample Data
-  const petitionCategories = [
-    { name: "Environment", value: 40 },
-    { name: "Education", value: 25 },
-    { name: "Transport", value: 20 },
-    { name: "Healthcare", value: 15 },
-  ];
+  const [stats, setStats] = useState({
+    total: 0,
+    under_review: 0,
+    active: 0,
+    rejected: 0,
+    resolved: 0,
+  });
 
-  const pollStatus = [
-    { name: "Active", value: 10 },
-    { name: "Closed", value: 15 },
-  ];
+  const [petitionCategories, setPetitionCategories] = useState([]);
+  const [pollStatus, setPollStatus] = useState([]);
+  const [pollTotal, setPollTotal] = useState(0);
+  const [pollVoterTurnout, setPollVoterTurnout] = useState(0);
 
-  const trendsData = [
+  const [trendsData, setTrendsData] = useState([
     { month: "Jan", petitions: 20, polls: 50 },
     { month: "Feb", petitions: 35, polls: 70 },
     { month: "Mar", petitions: 28, polls: 60 },
@@ -57,9 +57,35 @@ export default function ReportsPage() {
     { month: "Oct", petitions: 55, polls: 100 },
     { month: "Nov", petitions: 48, polls: 80 },
     { month: "Dec", petitions: 60, polls: 110 },
-  ];
+  ]);
 
-  const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"];
+  const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#f97316", "#ef4444"];
+
+  // --- Fetch Stats, Categories & Polls ---
+  const getStats = async () => {
+    try {
+      const statsRes = await api.get("/dashboard/petition-stats");
+      setStats(statsRes.data.stats);
+
+      const categoriesRes = await api.get("/reports/petitions/categories");
+      if (categoriesRes.data.success) {
+        setPetitionCategories(categoriesRes.data.categories);
+      }
+
+      const pollsRes = await api.get("/reports/polls/insights");
+      if (pollsRes.data.success) {
+        setPollStatus(pollsRes.data.polls.status);
+        setPollTotal(pollsRes.data.polls.total);
+        setPollVoterTurnout(pollsRes.data.polls.voter_turnout);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getStats();
+  }, []);
 
   // --- Export Functions ---
   const generatePDF = () => {
@@ -69,9 +95,22 @@ export default function ReportsPage() {
     doc.text("Civix - Official Reports", 14, 20);
 
     doc.setFontSize(12);
-    doc.text("Petition Categories", 14, 35);
+    doc.text("Petition Stats", 14, 35);
     autoTable(doc, {
       startY: 40,
+      head: [["Type", "Count"]],
+      body: [
+        ["Total", stats.total],
+        ["Under Review", stats.under_review],
+        ["Active", stats.active],
+        ["Rejected", stats.rejected],
+        ["Resolved", stats.resolved],
+      ],
+    });
+
+    doc.text("Petition Categories", 14, doc.lastAutoTable.finalY + 15);
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 20,
       head: [["Category", "Count"]],
       body: petitionCategories.map((p) => [p.name, p.value]),
     });
@@ -98,7 +137,7 @@ export default function ReportsPage() {
     const pdfBlob = doc.output("blob");
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
-    setShowPdfModal(true); // open modal
+    setShowPdfModal(true);
   };
 
   const handleDownloadPDF = () => {
@@ -107,13 +146,12 @@ export default function ReportsPage() {
   };
 
   const handleDownloadCSV = () => {
-    const allData = {
+    const csv = Papa.unparse({
       petitions: petitionCategories,
       polls: pollStatus,
       trends: trendsData,
-    };
+    });
 
-    const csv = Papa.unparse(allData.trends);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -127,20 +165,20 @@ export default function ReportsPage() {
     <div className="p-6 bg-blue-50 min-h-screen">
       {/* Header */}
       <h1 className="text-3xl font-bold text-blue-900 mb-8">
-        📊 Reports & Analytics
+        Reports & Analytics
       </h1>
 
       {/* Petition Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Petitions" value="50" />
-        <StatCard label="Pending" value="45" />
-        <StatCard label="Approved/Review" value="12" />
-        <StatCard label="Resolved" value="15" />
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <StatCard label="Total Petitions" value={stats.total} />
+        <StatCard label="Under Review" value={stats.under_review} />
+        <StatCard label="Active" value={stats.active} />
+        <StatCard label="Rejected" value={stats.rejected} />
+        <StatCard label="Resolved" value={stats.resolved} />
       </div>
 
       {/* Category Breakdown & Polls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Category Breakdown */}
         <div className="bg-white p-6 rounded-2xl shadow-md">
           <h2 className="text-lg font-semibold text-blue-800 mb-4">
             Category-wise Breakdown
@@ -155,18 +193,13 @@ export default function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Polls Insights */}
         <div className="bg-white p-6 rounded-2xl shadow-md">
           <h2 className="text-lg font-semibold text-blue-800 mb-4">
             Polls Insights
           </h2>
           <ul className="space-y-2 mb-6">
-            <li>
-              📌 Total Polls: <b>25</b>
-            </li>
-            <li>
-              🗳 Voter Turnout: <b>65%</b>
-            </li>
+            <li>📌 Total Polls: <b>{pollTotal}</b></li>
+            <li>🗳 Voter Turnout: <b>{pollVoterTurnout}%</b></li>
           </ul>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -233,7 +266,7 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* Export Options */}
+      {/* Export Buttons */}
       <div className="flex space-x-4 mt-8">
         <button
           onClick={handlePreviewPDF}
@@ -254,33 +287,29 @@ export default function ReportsPage() {
           Download CSV
         </button>
       </div>
-     {/* PDF Modal */}
-{showPdfModal && pdfUrl && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-[80vh] rounded-lg shadow-lg relative">
-      
-      {/* X Close Button */}
-      <div className="flex justify-end p-2 border-b">
-    <button
-      className="text-black text-2xl font-bold hover:text-red-600"
-      onClick={() => setShowPdfModal(false)}
-    >
-      ×
-    </button>
-  </div>
 
+      {/* PDF Modal */}
+      {showPdfModal && pdfUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-[80vh] rounded-lg shadow-lg relative">
+            <div className="flex justify-end p-2 border-b">
+              <button
+                className="text-black text-2xl font-bold hover:text-red-600"
+                onClick={() => setShowPdfModal(false)}
+              >
+                ×
+              </button>
+            </div>
 
-      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-        <Viewer
-          fileUrl={pdfUrl}
-          plugins={[defaultLayoutPluginInstance]}
-        />
-      </Worker>
-    </div>
-  </div>
-)}
-
-      
+            <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+              <Viewer
+                fileUrl={pdfUrl}
+                plugins={[defaultLayoutPluginInstance]}
+              />
+            </Worker>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
