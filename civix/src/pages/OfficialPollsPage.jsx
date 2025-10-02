@@ -7,24 +7,25 @@ const OfficialPollsPage = () => {
   const navigate = useNavigate();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("all"); // all, open, closed
+  const [selectedTab, setSelectedTab] = useState("all"); // all, mine, closed
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [locations, setLocations] = useState([]);
   const [departments, setDepartments] = useState([]);
 
-  const tabs = ["all", "open", "closed"];
+  const tabs = ["all", "mine", "closed"];
 
-  // Fetch polls for officials
+  const currentUserId = localStorage.getItem("userId"); // Logged-in official
+
   const fetchPolls = async (tabType = "all") => {
     setLoading(true);
     try {
       let endpoint = "/polls";
-      if (tabType === "open") endpoint = "/polls/open";
-      else if (tabType === "closed") endpoint = "/polls/closed";
+      if (tabType === "closed") endpoint = "/polls/closed";
+      if (tabType === "mine") endpoint = "/polls/my-polls"; // backend route for my polls
 
       const res = await api.get(endpoint);
-      const data = res.data || [];
+      const data = Array.isArray(res.data) ? res.data : res.data.polls || [];
 
       // Add totalResponses for each poll
       const pollsWithCounts = await Promise.all(
@@ -44,19 +45,12 @@ const OfficialPollsPage = () => {
 
       setPolls(pollsWithCounts);
 
-      // Unique locations and departments
-      const uniqueLocations = [
-        "All Locations",
-        ...new Set(data.filter(p => p && p.targetLocation).map(p => p.targetLocation))
-      ];
-      const uniqueDepartments = [
-        "All Departments",
-        ...new Set(data.filter(p => p && p.department).map(p => p.department))
-      ];
+      // Extract unique locations and departments
+      const uniqueLocations = ["All Locations", ...new Set(data.filter(p => p && p.targetLocation).map(p => p.targetLocation))];
+      //const uniqueDepartments = ["All Departments", ...new Set(data.filter(p => p && p.department).map(p => p.department))];
 
       setLocations(uniqueLocations);
-      setDepartments(uniqueDepartments);
-
+      //setDepartments(uniqueDepartments);
     } catch (err) {
       console.error("Error fetching polls", err);
     } finally {
@@ -83,38 +77,34 @@ const OfficialPollsPage = () => {
     };
   }, [selectedTab]);
 
-  // Filter polls by location, department, and status
+  // Filter polls by location and department
   const filteredPolls = polls
     .filter(p => p)
     .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation)
-    .filter(p => selectedDepartment === "All Departments" || p.department === selectedDepartment)
-    .filter(p => selectedTab === "all"
-      || selectedTab === "open" && !p.isClosed
-      || selectedTab === "closed" && p.isClosed
-    );
+    //.filter(p => selectedDepartment === "All Departments" || p.department === selectedDepartment)
+    .filter(p => {
+      if (selectedTab === "closed") return p.status === "Closed";
+      if (selectedTab === "mine") return p.createdBy?._id === currentUserId;
+      return true;
+    });
 
-  // Navigation actions for officials
   const handleViewResults = (poll) => {
-  navigate(`/dashboard/official/polls/${poll._id}`, {
-    state: { from: location.pathname, viewResults: true }
-  });
-};
+    navigate(`/dashboard/official/polls/${poll._id}`, {
+      state: { from: location.pathname, viewResults: true },
+    });
+  };
 
-
- const handleClosePoll = async (pollId) => {
-  try {
-    const res = await api.patch(`/polls/${pollId}/close`);
-    if (res.data.success) {
-      alert("Poll closed successfully!");
+  const handleClosePoll = async (pollId) => {
+    try {
+      const res = await api.patch(`/polls/${pollId}/close`);
+      if (res.data.success) {
+        alert("Poll closed successfully!");
+        fetchPolls(selectedTab);
+      }
+    } catch (error) {
+      console.error("Error closing poll:", error);
+      alert("Failed to close poll");
     }
-  } catch (error) {
-    console.error("Error closing poll:", error);
-    alert("Failed to close poll");
-  }
-};
-
-  const handleEditPoll = (poll) => {
-    navigate(`/dashboard/official/polls/edit/${poll._id}`, { state: { poll } });
   };
 
   return (
@@ -138,12 +128,13 @@ const OfficialPollsPage = () => {
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium ${selectedTab === tab
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                  }`}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+                  selectedTab === tab
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                }`}
               >
-                {tab === "all" ? "All Polls" : tab === "open" ? "Open Polls" : "Closed Polls"}
+                {tab === "all" ? "Active Polls" : tab === "mine" ? "My Polls" : "Closed Polls"}
               </button>
             ))}
           </div>
@@ -159,7 +150,7 @@ const OfficialPollsPage = () => {
               {locations.map(loc => <option key={loc}>{loc}</option>)}
             </select>
 
-    
+            
           </div>
         </div>
       </div>
@@ -178,10 +169,11 @@ const OfficialPollsPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800">{poll.title}</h3>
                     <p className="text-xs text-gray-400 mt-1">
-                      Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses: {poll.totalResponses || 0}
+                      Posted: {new Date(poll.createdAt).toLocaleDateString()} •
+                      Responses: {poll.totalResponses || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Location: {poll.targetLocation || "Unknown"}</p>
-                    <p className="text-xs text-gray-500 mt-1">Department: {poll.department || "Unknown"}</p>
+                    
                     <p className="text-xs text-gray-500 mt-1">Created By: {poll.createdBy?.name || "Unknown"}</p>
                   </div>
                   <div className="flex gap-2">
@@ -191,7 +183,15 @@ const OfficialPollsPage = () => {
                     >
                       View Result
                     </button>
-                    {!poll.isClosed && (
+
+                    {poll.status === "Closed" ? (
+                      <button
+                        disabled
+                        className="px-4 py-2 text-sm bg-gray-400 text-white rounded-lg cursor-not-allowed min-w-[80px]"
+                      >
+                        Closed
+                      </button>
+                    ) : (
                       <button
                         onClick={() => handleClosePoll(poll._id)}
                         className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 min-w-[80px]"
@@ -199,12 +199,6 @@ const OfficialPollsPage = () => {
                         Close Poll
                       </button>
                     )}
-                    <button
-                      onClick={() => handleEditPoll(poll)}
-                      className="px-4 py-2 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 min-w-[80px]"
-                    >
-                      Edit
-                    </button>
                   </div>
                 </li>
               ))}

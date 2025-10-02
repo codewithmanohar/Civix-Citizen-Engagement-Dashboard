@@ -19,7 +19,7 @@ const petitionSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Public Safety", "Environment", "Education", "Healthcare", "Infrastructure", "Other"],
+      enum: ["Public Safety", "Environment", "Education", "Healthcare", "Infrastructure", "Transportation","Housing"],
       default: "Other",
     },
     createdBy: {

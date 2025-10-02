@@ -129,7 +129,7 @@ const PetitionPage = () => {
             >
               <option>All</option>
               <option>Active</option>
-              <option>Closed</option>
+              <option>Under Review</option>
               <option>Resolved</option>
             </select>
 
