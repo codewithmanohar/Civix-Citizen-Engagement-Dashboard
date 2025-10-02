@@ -51,6 +51,9 @@ export default function App() {
 
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [petitions, setPetitions] = useState(petitionsData);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
 
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
@@ -93,8 +96,34 @@ export default function App() {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isLogin = location.pathname.startsWith("/login");
 
+  // Apply dark mode globally
+  React.useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      setDarkMode(isDark);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    checkDarkMode();
+    
+    // Listen for storage changes to sync dark mode across tabs
+    window.addEventListener('storage', checkDarkMode);
+    
+    // Check periodically for changes
+    const interval = setInterval(checkDarkMode, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', checkDarkMode);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen bg-blue-20">
+    <div className={`flex flex-col min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-blue-20'}`}>
       {location.pathname === "/" && (
         <nav className="flex justify-between items-center px-10 py-6 text-blue-900">
           <div className="text-3xl font-extrabold tracking-wide">CIVIX</div>

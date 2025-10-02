@@ -79,6 +79,10 @@ const PollVotingPage = () => {
       setViewResults(true);
       setSelectedOption("");
       
+      // Mark this poll as voted in localStorage with timestamp
+      localStorage.setItem('recentlyVotedPoll', id);
+      localStorage.setItem('votedPollTimestamp', Date.now().toString());
+      
       // Refresh poll data to get updated results
       await fetchPoll();
     } catch (err) {
@@ -116,7 +120,9 @@ const PollVotingPage = () => {
     );
   };
 const handleBack = () => {
-  if (location.state?.from) {
+  if (location.state?.returnTo) {
+    navigate(location.state.returnTo);
+  } else if (location.state?.from) {
     navigate(location.state.from);
   } else {
     const role = localStorage.getItem("role");
