@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
+import { removeUserVotes } from "../lib/pollService";
 import Loading from "../components/Loaders/Loading";
 
 const CivixPollsPage = () => {
@@ -10,6 +11,11 @@ const CivixPollsPage = () => {
   const [selectedTab, setSelectedTab] = useState("all"); // all, mine, closed
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [locations, setLocations] = useState([]);
+  const [votedPolls, setVotedPolls] = useState(() => {
+    const saved = localStorage.getItem('votedPolls');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+  const targetUserId = "68cfede308eb217ae39136c4";
 
   // Get logged-in user info from localStorage
   const currentUserName = localStorage.getItem("name");
@@ -61,12 +67,83 @@ const CivixPollsPage = () => {
     fetchPolls(selectedTab);
   }, [selectedTab]);
 
+  // Check for recently voted poll on component mount and when returning from voting
+  useEffect(() => {
+    const checkRecentVote = () => {
+      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
+      if (recentlyVoted) {
+        setVotedPolls(prev => {
+          const newSet = new Set([...prev, recentlyVoted]);
+          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        localStorage.removeItem('recentlyVotedPoll');
+        // Force re-render by updating polls state
+        setPolls(prev => [...prev]);
+      }
+    };
+    
+    checkRecentVote();
+  }, []);
+
+  // Listen for navigation state changes to detect return from voting
+  useEffect(() => {
+    const checkRecentVote = () => {
+      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
+      const timestamp = localStorage.getItem('votedPollTimestamp');
+      if (recentlyVoted && timestamp) {
+        setVotedPolls(prev => {
+          const newSet = new Set([...prev, recentlyVoted]);
+          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        localStorage.removeItem('recentlyVotedPoll');
+        localStorage.removeItem('votedPollTimestamp');
+        // Force component re-render
+        setPolls(prev => [...prev]);
+      }
+    };
+    
+    checkRecentVote();
+  }, [location.key]); // Trigger when navigation key changes
+
+  // Also check on interval to catch any missed updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
+      if (recentlyVoted) {
+        setVotedPolls(prev => {
+          const newSet = new Set([...prev, recentlyVoted]);
+          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        localStorage.removeItem('recentlyVotedPoll');
+        setPolls(prev => [...prev]);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Refresh polls when component becomes visible (e.g., returning from poll creation or voting)
   useEffect(() => {
-    const handleFocus = () => fetchPolls(selectedTab);
+    const handleFocus = () => {
+      // Check for recently voted poll when returning to page
+      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
+      if (recentlyVoted) {
+        setVotedPolls(prev => {
+          const newSet = new Set([...prev, recentlyVoted]);
+          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        localStorage.removeItem('recentlyVotedPoll');
+      }
+      fetchPolls(selectedTab);
+    };
+    
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        fetchPolls(selectedTab);
+        handleFocus();
       }
     };
 
@@ -86,12 +163,46 @@ const CivixPollsPage = () => {
     .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation);
 
   const handleVote = (poll) => {
-    navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll } });
+    navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, returnTo: '/dashboard/citizen/polls' } });
   };
 
   const handleStatus = (poll) => {
-    navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, viewResults: true } });
+    navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, viewResults: true, returnTo: '/dashboard/citizen/polls' } });
   };
+
+  // Check if user has voted on a poll
+  const hasUserVoted = (poll) => {
+    return poll.userHasVoted || votedPolls.has(poll._id);
+  };
+
+  // Mark poll as voted when returning from voting page
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
+      if (recentlyVoted) {
+        setVotedPolls(prev => {
+          const newSet = new Set([...prev, recentlyVoted]);
+          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        localStorage.removeItem('recentlyVotedPoll');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    handleStorageChange(); // Check on mount
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Persist voted polls to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('votedPolls', JSON.stringify([...votedPolls]));
+  }, [votedPolls]);
+
+
+
+
 
 
   return (
@@ -178,7 +289,7 @@ const CivixPollsPage = () => {
                         </p>
                       </div>
                       <div>
-                        {poll.userHasVoted ? (
+                        {hasUserVoted(poll) ? (
                           <button
                             onClick={() => handleStatus(poll)}
                             className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[80px]"

@@ -40,3 +40,26 @@ export const votePoll = async (pollId, option) => {
     throw err;
   }
 };
+
+// Remove all votes by user ID
+export const removeUserVotes = async (userId) => {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("User not logged in");
+
+  try {
+    const { data } = await axios.delete(
+      `${VOTES_URL}/user/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return data;
+  } catch (err) {
+    console.error("Error removing user votes:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
+
