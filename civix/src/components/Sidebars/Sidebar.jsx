@@ -94,24 +94,37 @@ const Sidebar = () => {
       </div>
 
       {/* Custom Popup */}
-      {showConfirm && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-80 bg-white shadow-lg border border-gray-200 rounded-lg p-4 z-50">
-          <p className="text-gray-800 font-medium mb-3">
-            Are you sure you want to sign out?
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setShowConfirm(false)}
-              className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSignout}
-              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-            >
-              Sign Out
-            </button>
+       {showConfirm && (
+        // The z-50 fixed overlay ensures it is on top of and blocks background content.
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          // This click listener on the overlay captures clicks outside the modal content
+          // and prevents them from reaching elements underneath.
+          onClick={() => setShowConfirm(false)}
+        >
+          {/* Modal Content */}
+          <div
+            className="w-[400px] bg-white shadow-2xl border border-gray-200 rounded-xl p-6 relative"
+            // This stops click events inside the modal from bubbling up and closing the modal via the overlay's onClick.
+            onClick={(e) => e.stopPropagation()} 
+          >
+            <p className="text-gray-900 text-lg font-semibold mb-4 text-center">
+              Are you sure you want to sign out?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignout}
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       )}
