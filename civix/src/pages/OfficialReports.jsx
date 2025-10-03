@@ -99,7 +99,7 @@ const [voterTurnout, setVoterTurnout] = useState(0);
 
 const getVoterTurnout = async () => {
   try {
-    const res = await api.get("/polls/insights");
+    const res = await api.get("/reports/polls/insights");
     if (res.data?.success && res.data.polls?.voter_turnout) {
       const turnout = Number(res.data.polls.voter_turnout) || 0;
       setVoterTurnout(turnout.toFixed(2)); // optional: format to 2 decimals
