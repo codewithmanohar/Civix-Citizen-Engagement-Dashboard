@@ -14,6 +14,8 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
   const disableSign =
     selectedTab === "mine" ||
     selectedTab === "signed" ||
+    petition.status === "Resolved" || 
+     petition.status === "Rejected" ||
      petition.createdBy?._id === userId || // compare by name
   (mySignedPetitions || []).some((p) => p && p._id === petition._id);
 
