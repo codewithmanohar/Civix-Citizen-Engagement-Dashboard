@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Poll from "../models/polls.js";
 import Vote from "../models/vote.js";
 
@@ -28,6 +29,10 @@ export const createPoll = async (req, res) => {
 
 export const getPolls = async (req, res) => {
   try {
+    console.log('=== getPolls FUNCTION CALLED ===');
+    console.log('User ID:', req.user ? req.user.id : 'no user');
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request method:', req.method);
     // // Fetch only polls with status "Active"
     const polls = await Poll.find({ status: "Active" }).populate("createdBy", "name email");
     
@@ -39,8 +44,22 @@ export const getPolls = async (req, res) => {
         
         let userHasVoted = false;
         if (req.user && req.user.id) {
-          const existingVote = await Vote.findOne({ pollId: poll._id, userId: req.user.id });
-          userHasVoted = !!existingVote;
+          try {
+            console.log(`Checking votes for pollId: ${poll._id} (type: ${typeof poll._id}), userId: ${req.user.id} (type: ${typeof req.user.id})`);
+            
+            // Check all votes for this poll to debug
+            const allVotesForPoll = await Vote.find({ pollId: poll._id });
+            console.log(`All votes for poll ${poll.title}:`, allVotesForPoll.map(v => ({ userId: v.userId, userIdType: typeof v.userId })));
+            
+            const existingVote = await Vote.findOne({ 
+              pollId: poll._id, 
+              userId: req.user.id 
+            });
+            userHasVoted = !!existingVote;
+            console.log(`Poll ${poll.title}: User ${req.user.id} hasVoted = ${userHasVoted}`);
+          } catch (err) {
+            console.error('Error checking vote status:', err);
+          }
         }
         
         return { 
@@ -94,8 +113,16 @@ export const getPollById = async (req, res) => {
     // Check if the requesting user has voted (only if authenticated)
     let userHasVoted = false;
     if (req.user && req.user.id) {
-      const existingVote = await Vote.findOne({ pollId: poll._id, userId: req.user.id });
-      userHasVoted = !!existingVote;
+      try {
+        const existingVote = await Vote.findOne({ 
+          pollId: poll._id, 
+          userId: req.user.id 
+        });
+        userHasVoted = !!existingVote;
+        console.log(`getPollById - Poll ${poll.title}: User ${req.user.id} hasVoted = ${userHasVoted}, vote found:`, existingVote ? 'YES' : 'NO');
+      } catch (err) {
+        console.error('Error checking vote status in getPollById:', err);
+      }
     }
 
     res.status(200).json({ ...poll.toObject(), userHasVoted });

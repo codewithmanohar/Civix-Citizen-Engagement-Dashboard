@@ -8,6 +8,9 @@ const PollVotingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  console.log('PollVotingPage loaded with ID:', id);
+  console.log('Location state:', location.state);
 
   const [poll, setPoll] = useState(null);
   const [votes, setVotes] = useState({});
@@ -73,18 +76,27 @@ const PollVotingPage = () => {
     if (!selectedOption) return alert("Please select an option!");
 
     try {
+      console.log('Submitting vote for poll:', id, 'option:', selectedOption);
       // Submit vote
-      await votePoll(id, selectedOption);
+      const result = await votePoll(id, selectedOption);
+      console.log('Vote submission result:', result);
+      
       setHasVoted(true);
       setViewResults(true);
       setSelectedOption("");
       
-      // Mark this poll as voted in localStorage with timestamp
-      localStorage.setItem('recentlyVotedPoll', id);
-      localStorage.setItem('votedPollTimestamp', Date.now().toString());
+      // Update parent polls list to show Status button
+      if (window.updatePollVoteStatus) {
+        window.updatePollVoteStatus(id, true);
+      }
       
       // Refresh poll data to get updated results
       await fetchPoll();
+      
+      // Force refresh polls list immediately
+      setTimeout(() => {
+        window.dispatchEvent(new Event('pollVoted'));
+      }, 500);
     } catch (err) {
       console.error("Error submitting vote:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Something went wrong. Please try again.");

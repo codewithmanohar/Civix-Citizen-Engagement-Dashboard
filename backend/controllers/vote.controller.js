@@ -26,6 +26,8 @@ export const voteInPoll = async (req, res) => {
     const { option } = req.body;
     const pollId = req.params.id;
     const userId = req.user.id;
+    
+    console.log(`Vote attempt - PollId: ${pollId}, UserId: ${userId}, Option: ${option}`);
 
     // Check if poll exists
     const poll = await Poll.findById(pollId);

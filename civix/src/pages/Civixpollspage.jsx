@@ -11,10 +11,8 @@ const CivixPollsPage = () => {
   const [selectedTab, setSelectedTab] = useState("all"); // all, mine, closed
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [locations, setLocations] = useState([]);
-  const [votedPolls, setVotedPolls] = useState(() => {
-    const saved = localStorage.getItem('votedPolls');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
+
+
   const targetUserId = "68cfede308eb217ae39136c4";
 
   // Get logged-in user info from localStorage
@@ -27,8 +25,15 @@ const CivixPollsPage = () => {
     setLoading(true);
     try {
       const endpoint = tabType === "mine" ? "/polls/my-polls" : "/polls";
-      const res = await api.get(endpoint);
+      console.log('Fetching polls from:', endpoint);
+      const res = await api.get(endpoint, { 
+        headers: { 'Cache-Control': 'no-cache' } 
+      });
+      console.log('API response status:', res.status);
+      console.log('API response headers:', res.headers);
       const data = res.data || [];
+      console.log('Raw poll data from backend:', data.slice(0, 1));
+      console.log('First poll userHasVoted:', data[0]?.userHasVoted);
       
 
       // Ensure each poll has updated vote counts
@@ -48,6 +53,7 @@ const CivixPollsPage = () => {
         })
       );
 
+      console.log('Polls from backend:', pollsWithUpdatedCounts);
       setPolls(pollsWithUpdatedCounts);
 
       // Extract unique locations dynamically
@@ -67,77 +73,51 @@ const CivixPollsPage = () => {
     fetchPolls(selectedTab);
   }, [selectedTab]);
 
-  // Check for recently voted poll on component mount and when returning from voting
   useEffect(() => {
-    const checkRecentVote = () => {
-      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
-      if (recentlyVoted) {
-        setVotedPolls(prev => {
-          const newSet = new Set([...prev, recentlyVoted]);
-          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
-          return newSet;
-        });
-        localStorage.removeItem('recentlyVotedPoll');
-        // Force re-render by updating polls state
-        setPolls(prev => [...prev]);
-      }
+    window.updatePollVoteStatus = (pollId, hasVoted) => {
+      setPolls(prev => prev.map(poll => 
+        poll._id === pollId ? { ...poll, userHasVoted: hasVoted } : poll
+      ));
     };
     
-    checkRecentVote();
+    return () => {
+      delete window.updatePollVoteStatus;
+    };
   }, []);
 
-  // Listen for navigation state changes to detect return from voting
   useEffect(() => {
-    const checkRecentVote = () => {
-      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
-      const timestamp = localStorage.getItem('votedPollTimestamp');
-      if (recentlyVoted && timestamp) {
-        setVotedPolls(prev => {
-          const newSet = new Set([...prev, recentlyVoted]);
-          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
-          return newSet;
-        });
-        localStorage.removeItem('recentlyVotedPoll');
-        localStorage.removeItem('votedPollTimestamp');
-        // Force component re-render
-        setPolls(prev => [...prev]);
-      }
+    const handlePollVoted = () => {
+      console.log('Poll voted event received, refreshing polls');
+      fetchPolls(selectedTab);
     };
     
-    checkRecentVote();
-  }, [location.key]); // Trigger when navigation key changes
+    window.addEventListener('pollVoted', handlePollVoted);
+    return () => window.removeEventListener('pollVoted', handlePollVoted);
+  }, [selectedTab]);
 
-  // Also check on interval to catch any missed updates
+
+
+  // Clear vote tracking when user logs out
   useEffect(() => {
-    const interval = setInterval(() => {
-      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
-      if (recentlyVoted) {
-        setVotedPolls(prev => {
-          const newSet = new Set([...prev, recentlyVoted]);
-          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
-          return newSet;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      // Clear any local vote tracking
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith(`poll_vote_${userId}_`)) {
+            localStorage.removeItem(key);
+          }
         });
-        localStorage.removeItem('recentlyVotedPoll');
-        setPolls(prev => [...prev]);
       }
-    }, 1000);
-
-    return () => clearInterval(interval);
+    }
   }, []);
+
+
 
   // Refresh polls when component becomes visible (e.g., returning from poll creation or voting)
   useEffect(() => {
     const handleFocus = () => {
-      // Check for recently voted poll when returning to page
-      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
-      if (recentlyVoted) {
-        setVotedPolls(prev => {
-          const newSet = new Set([...prev, recentlyVoted]);
-          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
-          return newSet;
-        });
-        localStorage.removeItem('recentlyVotedPoll');
-      }
       fetchPolls(selectedTab);
     };
     
@@ -163,6 +143,8 @@ const CivixPollsPage = () => {
     .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation);
 
   const handleVote = (poll) => {
+    console.log('Navigating to poll:', poll._id);
+    console.log('Full navigation path:', `/dashboard/citizen/polls/${poll._id}`);
     navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, returnTo: '/dashboard/citizen/polls' } });
   };
 
@@ -172,33 +154,13 @@ const CivixPollsPage = () => {
 
   // Check if user has voted on a poll
   const hasUserVoted = (poll) => {
-    return poll.userHasVoted || votedPolls.has(poll._id);
+    // Primarily rely on backend userHasVoted field
+    const hasVoted = poll.userHasVoted || false;
+    console.log(`Poll ${poll.title}: userHasVoted=${hasVoted}`);
+    return hasVoted;
   };
 
-  // Mark poll as voted when returning from voting page
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const recentlyVoted = localStorage.getItem('recentlyVotedPoll');
-      if (recentlyVoted) {
-        setVotedPolls(prev => {
-          const newSet = new Set([...prev, recentlyVoted]);
-          localStorage.setItem('votedPolls', JSON.stringify([...newSet]));
-          return newSet;
-        });
-        localStorage.removeItem('recentlyVotedPoll');
-      }
-    };
 
-    window.addEventListener('storage', handleStorageChange);
-    handleStorageChange(); // Check on mount
-
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Persist voted polls to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('votedPolls', JSON.stringify([...votedPolls]));
-  }, [votedPolls]);
 
 
 
