@@ -42,8 +42,7 @@ export default function ReportsPage() {
   const [petitionCategories, setPetitionCategories] = useState([]);
   const [pollStatus, setPollStatus] = useState([]);
   const [pollTotal, setPollTotal] = useState(0);
-  const [pollVoterTurnout, setPollVoterTurnout] = useState(0);
-
+ 
   const [trendsData, setTrendsData] = useState([
     { month: "Jan", petitions: 20, polls: 50 },
     { month: "Feb", petitions: 35, polls: 70 },
@@ -71,20 +70,52 @@ export default function ReportsPage() {
       if (categoriesRes.data.success) {
         setPetitionCategories(categoriesRes.data.categories);
       }
+       // 3. Poll insights using /polls + /polls/closed
+    const activeRes = await api.get("/polls");
+    const closedRes = await api.get("/polls/closed");
 
-      const pollsRes = await api.get("/reports/polls/insights");
-      if (pollsRes.data.success) {
-        setPollStatus(pollsRes.data.polls.status);
-        setPollTotal(pollsRes.data.polls.total);
-        setPollVoterTurnout(pollsRes.data.polls.voter_turnout);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    // Check if your API returns { polls: [...] } or just [...]
+    const activePolls = activeRes.data.polls || activeRes.data || [];
+    const closedPolls = closedRes.data.polls || closedRes.data || [];
+
+    const activeCount = activePolls.length;
+    const closedCount = closedPolls.length;
+    const total = activeCount + closedCount;
+
+
+
+setPollStatus([
+      { name: "Active", value: activeCount },
+      { name: "Closed", value: closedCount },
+    ]);
+    setPollTotal(total);
+   
+
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
+const [voterTurnout, setVoterTurnout] = useState(0);
+
+const getVoterTurnout = async () => {
+  try {
+    const res = await api.get("/polls/insights");
+    if (res.data?.success && res.data.polls?.voter_turnout) {
+      const turnout = Number(res.data.polls.voter_turnout) || 0;
+      setVoterTurnout(turnout.toFixed(2)); // optional: format to 2 decimals
     }
-  };
+  } catch (err) {
+    console.error("Error fetching voter turnout:", err);
+  }
+};
+
+
+
+
 
   useEffect(() => {
     getStats();
+    getVoterTurnout(); 
   }, []);
 
   // --- Export Functions ---
@@ -183,14 +214,29 @@ export default function ReportsPage() {
           <h2 className="text-lg font-semibold text-blue-800 mb-4">
             Category-wise Breakdown
           </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={petitionCategories}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#2563eb" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+<ResponsiveContainer width="100%" height={400}>
+  <BarChart
+    data={petitionCategories}
+    margin={{ top: 0, right: 10, left: 0, bottom: 7 }}
+    //barCategoryGap={20} // space between bars
+  >
+    <XAxis
+      dataKey="name"
+      interval={0}
+      tick={{ fontSize: 14 }}
+      angle={-35} // rotate labels
+      textAnchor="end"
+      height={60} // make room for rotated labels
+      padding={{ left: 10, right: 0 }}
+    />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="value" fill="#2563eb" radius={[8, 8, 0, 0]} />
+  </BarChart>
+</ResponsiveContainer>
+
+
+
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-md">
@@ -199,30 +245,30 @@ export default function ReportsPage() {
           </h2>
           <ul className="space-y-2 mb-6">
             <li>📌 Total Polls: <b>{pollTotal}</b></li>
-            <li>🗳 Voter Turnout: <b>{pollVoterTurnout}%</b></li>
+            <li>🗳 Voter Turnout: <b>{voterTurnout}%</b></li>
           </ul>
           <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={pollStatus}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label
-              >
-                {pollStatus.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Legend />
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+  <PieChart>
+    <Pie
+      data={pollStatus}
+      cx="50%"
+      cy="50%"
+      outerRadius={80}
+      dataKey="value"
+      label={({ name, value }) => `${name}: ${value}`}
+    >
+      {pollStatus.map((entry, index) => (
+        <Cell
+          key={`cell-${index}`}
+          fill={entry.name === "Active" ? "#2563eb" : "#22c55e"} // Blue for active, Red for closed
+        />
+      ))}
+    </Pie>
+    <Legend />
+    <Tooltip />
+  </PieChart>
+</ResponsiveContainer>
+
         </div>
       </div>
 
