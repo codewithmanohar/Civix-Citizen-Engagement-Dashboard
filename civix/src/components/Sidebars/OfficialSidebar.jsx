@@ -31,6 +31,7 @@ const OfficialSidebar = () => {
       label: "Petitions",
       icon: FileText,
       children: [
+         { to: "/dashboard/official/petitions", label: "All Petitions" },
         { to: "/dashboard/official/petitions/pending", label: "Active" },
         { to: "/dashboard/official/petitions/approved", label: "Under Review" },
         { to: "/dashboard/official/petitions/resolved", label: "Resolved" },

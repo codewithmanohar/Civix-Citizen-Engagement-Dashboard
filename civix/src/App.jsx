@@ -38,7 +38,7 @@ import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
 import OfficialReports from "./pages/OfficialReports";
 import OfficialPollsPage from "./pages/OfficialPollsPage";
-
+import OfficialPetitionPage from "./components/OfficialPetitionPage";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 
 // Toastify
@@ -237,6 +237,11 @@ export default function App() {
               path="petitions/pending"
               element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
+             <Route
+  path="petitions"
+  element={<OfficialPetitionPage />}
+/>
+
             <Route
               path="petitions/approved"
               element={

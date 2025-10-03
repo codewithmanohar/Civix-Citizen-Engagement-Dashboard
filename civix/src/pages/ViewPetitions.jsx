@@ -21,7 +21,9 @@ const ViewPetition = () => {
   // ✅ signatures state
   const [signatureCount, setSignatureCount] = useState(0);
   const [signatures, setSignatures] = useState([]);
-
+// ✅ comments
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
   useEffect(() => {
     const fetchPetition = async () => {
       try {
@@ -32,6 +34,9 @@ const ViewPetition = () => {
         const res = await api.get(`/petition/signature/${id}`);
         setSignatureCount(res.data.total || 0);
         setSignatures(res.data.signatures || []);
+         // ✅ Load comments from localStorage
+        const stored = JSON.parse(localStorage.getItem(`comments_${id}`)) || [];
+        setComments(stored);
       } catch (err) {
         console.error("Failed to fetch petition", err);
       } finally {
@@ -40,7 +45,22 @@ const ViewPetition = () => {
     };
     fetchPetition();
   }, [id]);
+ // ✅ add comment locally
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
 
+    const newEntry = {
+      id: Date.now(),
+      name: currentUser.name,
+      text: newComment,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [newEntry, ...comments];
+    setComments(updated);
+    localStorage.setItem(`comments_${id}`, JSON.stringify(updated));
+    setNewComment("");
+  };
   if (loading) return <div className="p-8">Loading petition details...</div>;
   if (!petition) return <p className="text-center mt-10">Petition not found!</p>;
 
@@ -82,7 +102,43 @@ const ViewPetition = () => {
           Back
         </button>
       </div>
+    {/* Comments */}
+      <div className="mb-6">
+        <h2 className="font-semibold mb-2">Comments</h2>
 
+        {/* Input */}
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          className="w-full border rounded-lg p-2 mb-2 resize-none"
+          placeholder="Write your comment..."
+          rows={2}
+        />
+        <button
+          onClick={handleAddComment}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Post Comment
+        </button>
+
+        {/* List */}
+        {comments.length > 0 ? (
+          <ul className="mt-4 space-y-3">
+            {comments.map((c) => (
+              <li key={c.id} className="border rounded-lg p-3 bg-gray-50">
+                <p className="text-sm text-gray-800">
+                  <span className="font-semibold">{c.name}</span>: {c.text}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(c.createdAt).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 mt-2">No comments yet. Be the first!</p>
+        )}
+      </div>
       {/* Signed By */}
       {signatures.length > 0 && (
         <div className="mb-6">

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPetitionById } from "../lib/petitionService";
-
+import api from "../lib/api";
 const OfficialPetitionView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Pull logged-in official user from localStorage
   const currentUser = {
     _id: localStorage.getItem("userId"),
     name: localStorage.getItem("name") || "Official",
@@ -18,9 +17,10 @@ const OfficialPetitionView = () => {
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
   const [updates, setUpdates] = useState([]);
-  const [newComment, setNewComment] = useState("");
   const [newUpdate, setNewUpdate] = useState("");
-
+  const [replyInputs, setReplyInputs] = useState({}); // track replies per comment
+  const [signatureCount, setSignatureCount] = useState(0);
+  const [signatures, setSignatures] = useState([]);
   useEffect(() => {
     const fetchPetition = async () => {
       try {
@@ -28,8 +28,15 @@ const OfficialPetitionView = () => {
         setPetition(data);
 
         const savedComments = localStorage.getItem(`comments-${id}`);
-        setComments([...(data.comments || []), ...(savedComments ? JSON.parse(savedComments) : [])]);
+        setComments([
+          ...(data.comments || []),
+          ...(savedComments ? JSON.parse(savedComments) : []),
+        ]);
         setUpdates(data.updates || []);
+         // ✅ Fetch live signatures from backend
+        const sigRes = await api.get(`/petition/signature/${id}`);
+        setSignatureCount(sigRes.data.total || 0);
+        setSignatures(sigRes.data.signatures || []);
       } catch (err) {
         console.error("Failed to fetch petition", err);
       } finally {
@@ -42,23 +49,42 @@ const OfficialPetitionView = () => {
   if (loading) return <div className="p-8">Loading petition details...</div>;
   if (!petition) return <p className="text-center mt-10">Petition not found!</p>;
 
-  const totalSignatures = petition.signatures?.length || 0;
   const target = petition.signatureGoal || 100;
-  const progress = (totalSignatures / target) * 100;
+ const progress = (signatureCount / target) * 100;
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const newEntry = { id: Date.now(), user: currentUser.name, text: newComment, time: "Just now" };
-      const updated = [newEntry, ...comments];
-      setComments(updated);
-      localStorage.setItem(`comments-${id}`, JSON.stringify(updated));
-      setNewComment("");
-    }
+
+  const handleReplyChange = (commentId, value) => {
+    setReplyInputs((prev) => ({ ...prev, [commentId]: value }));
+  };
+
+  const handleAddReply = (commentId) => {
+    const replyText = replyInputs[commentId]?.trim();
+    if (!replyText) return;
+
+    const newReply = {
+      id: Date.now(),
+      user: currentUser.name,
+      text: replyText,
+      time: "Just now",
+    };
+
+    const updatedComments = comments.map((c) =>
+      c.id === commentId ? { ...c, replies: [...(c.replies || []), newReply] } : c
+    );
+
+    setComments(updatedComments);
+    localStorage.setItem(`comments-${id}`, JSON.stringify(updatedComments));
+    setReplyInputs((prev) => ({ ...prev, [commentId]: "" }));
   };
 
   const handleAddUpdate = () => {
     if (newUpdate.trim()) {
-      const newEntry = { id: Date.now(), user: currentUser.name, text: newUpdate, time: "Just now" };
+      const newEntry = {
+        id: Date.now(),
+        user: currentUser.name,
+        text: newUpdate,
+        time: "Just now",
+      };
       setUpdates([newEntry, ...updates]);
       setNewUpdate("");
     }
@@ -73,7 +99,9 @@ const OfficialPetitionView = () => {
       <p className="text-gray-600 mb-4">Created by: {petition.createdBy?.name || "Unknown"}</p>
       <p className="mb-4">{petition.description}</p>
       <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-4">Signatures: {totalSignatures} / {target}</p>
+       <p className="text-sm text-gray-500 mb-4">
+        Signatures: {signatureCount} / {target}
+      </p>
 
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
@@ -91,11 +119,11 @@ const OfficialPetitionView = () => {
       </div>
 
       {/* Signed By */}
-      {petition.signatures?.length > 0 && (
+      {signatures.length > 0 && (
         <div className="mb-6">
           <h2 className="font-semibold mb-2">Signed By:</h2>
           <ul className="list-disc list-inside">
-            {petition.signatures.map((sig, index) => (
+            {signatures.map((sig, index) => (
               <li key={index}>
                 {sig.user?.name || sig.user} (on {new Date(sig.signedAt).toLocaleDateString()})
               </li>
@@ -105,9 +133,50 @@ const OfficialPetitionView = () => {
       )}
 
       {/* Comments */}
-     
+      <div className="mb-6">
+        <h2 className="font-semibold mb-2">Comments</h2>
+        <div className="space-y-4">
+          {comments.map((comment) => (
+            <div key={comment.id} className="p-3 border rounded bg-gray-50">
+              <p className="text-sm font-medium">{comment.user}</p>
+              <p className="text-sm mb-2">{comment.text}</p>
+              <span className="text-xs text-gray-400">{comment.time}</span>
 
-      {/* Updates (Officials can always post updates) */}
+              {/* Replies */}
+              {comment.replies?.length > 0 && (
+                <div className="ml-4 mt-2 space-y-2">
+                  {comment.replies.map((r) => (
+                    <div key={r.id} className="p-2 border rounded bg-gray-100">
+                      <p className="text-sm font-medium">{r.user}</p>
+                      <p className="text-sm">{r.text}</p>
+                      <span className="text-xs text-gray-400">{r.time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Official Reply Input */}
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  value={replyInputs[comment.id] || ""}
+                  onChange={(e) => handleReplyChange(comment.id, e.target.value)}
+                  placeholder="Reply to comment..."
+                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={() => handleAddReply(comment.id)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Updates */}
       <div className="mb-6">
         <h2 className="font-semibold mb-2">Updates</h2>
         <div className="space-y-3 mb-3">
@@ -136,48 +205,52 @@ const OfficialPetitionView = () => {
             Post
           </button>
         </div>
+        {/* Share */}
+      <div>
+        <h2 className="font-semibold mb-2">Share:</h2>
+        <div className="flex gap-3">
+          {/* Facebook */}
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+              window.location.href
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Facebook
+          </a>
+
+          {/* Twitter */}
+          <a
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+              window.location.href
+            )}&text=${encodeURIComponent(petition.title)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600"
+          >
+            Twitter
+          </a>
+
+          {/* Email */}
+          <a
+            href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
+              "Check out this petition!"
+            )}&body=${encodeURIComponent(
+              (petition.title || "Interesting petition") +
+                " - " +
+                window.location.href
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+          >
+            Email
+          </a>
+        </div>
+        </div>
       </div>
-      {/* Share */}
-<div>
-  <h2 className="font-semibold mb-2">Share:</h2>
-  <div className="flex gap-3">
-    {/* Facebook */}
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-    >
-      Facebook
-    </a>
-
-    {/* Twitter */}
-    <a
-      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(petition.title)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600"
-    >
-      Twitter
-    </a>
-
-    {/* Email */}
-    <a
-  href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
-    "Check out this petition!"
-  )}&body=${encodeURIComponent(
-    (petition.title || "Interesting petition") + " - " + window.location.href
-  )}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
->
-  Email
-</a>
-
-
-  </div>
-    </div>
     </div>
   );
 };
