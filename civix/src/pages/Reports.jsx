@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   PieChart,
   Pie,
@@ -10,53 +10,75 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
-
-// PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
+import { fetchPetitions, fetchPolls, fetchUsers } from "../lib/reportService"; // ✅ import new service
+
 const COLORS = ["#1D4ED8", "#10b981", "#3b82f6", "#93C5FD"];
 
-const CitizenReports = ({ petitions, polls }) => {
+const CitizenReports = () => {
+  const [petitions, setPetitions] = useState([]);
+  const [polls, setPolls] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-  // Default sample data if no props passed
-  const samplePetitions = [
-    { id: 1, status: "Active" },
-    { id: 2, status: "Closed" },
-    { id: 3, status: "Under Review" },
-    { id: 4, status: "Active" },
-  ];
 
-  const samplePolls = [
-    { id: 1, status: "Active" },
-    { id: 2, status: "Closed" },
-    { id: 3, status: "Active" },
-  ];
+  // ✅ Fetch all data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [petitionData, pollData, userData] = await Promise.all([
+          fetchPetitions(),
+          fetchPolls(),
+          fetchUsers(),
+        ]);
+        setPetitions(petitionData);
+        setPolls(pollData);
+        setUsers(userData);
+      } catch (error) {
+        console.error("Error loading reports:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  // Use passed props or sample data
-  const petitionsData = petitions && petitions.length > 0 ? petitions : samplePetitions;
-  const pollsData = polls && polls.length > 0 ? polls : samplePolls;
+  if (loading) {
+    return <div className="p-6 text-blue-800 text-lg">Loading reports...</div>;
+  }
 
-  // Stats
-  const totalPetitions = petitionsData.length;
-  const totalPolls = pollsData.length;
-  const activeEngagement = petitionsData.filter(p => p.status === "Active").length;
+  // ✅ Stats
+  const totalPetitions = petitions.length;
+  const totalPolls = polls.length;
+  // ✅ Count active petitions
+const activePetitions = petitions.filter(p => p.status === "Active").length;
 
-  // Pie Chart Data
+// ✅ Count active polls
+const activePolls = polls.filter(p => p.status === "Active").length;
+
+// ✅ Total active engagement (users + active items, or only active petitions + polls?)
+const activeEngagement = activePetitions + activePolls;
+
+ 
+
+  // ✅ Chart Data
   const petitionStatus = [
-    { name: "Active", value: petitionsData.filter(p => p.status === "Active").length || 1 },
-    { name: "Under Review", value: petitionsData.filter(p => p.status === "Under Review").length || 1 },
-    { name: "Closed", value: petitionsData.filter(p => p.status === "Closed").length || 1 },
+    { name: "Active", value: petitions.filter(p => p.status === "Active").length || 0 },
+    { name: "Under Review", value: petitions.filter(p => p.status === "Under Review").length || 0 },
+    { name: "Resolved", value: petitions.filter(p => p.status === "Resolved").length || 0 },
+    { name: "Rejected", value: petitions.filter(p => p.status === "Rejected").length || 0 },
   ];
 
   const pollStatusData = [
-    { name: "Active", value: pollsData.filter(p => p.status === "Active").length || 1 },
-    { name: "Closed", value: pollsData.filter(p => p.status === "Closed").length || 1 },
+    { name: "Active", value: polls.filter(p => p.status === "Active").length || 0 },
+    { name: "Closed", value: polls.filter(p => p.status === "Closed").length || 0 },
   ];
 
   // --- Generate PDF ---
@@ -83,7 +105,6 @@ const CitizenReports = ({ petitions, polls }) => {
     return doc;
   };
 
-  // --- Preview PDF ---
   const handlePreviewPDF = () => {
     const doc = generatePDF();
     const pdfBlob = doc.output("blob");
@@ -120,78 +141,34 @@ const CitizenReports = ({ petitions, polls }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard label="Total Petitions" value={totalPetitions} />
         <StatCard label="Total Polls" value={totalPolls} />
-        <StatCard label="Active Engagement" value={activeEngagement} />
+        <StatCard label="Active Engagement (Active Petitions + Polls)" value={activeEngagement} />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Petition Status Pie */}
-        <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h2 className="text-lg font-semibold text-blue-800 mb-4">Petition Status Breakdown</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={petitionStatus}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {petitionStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartCard title="Petition Status Breakdown" data={petitionStatus}>
+  <Legend
+    payload={[
+      { id: 'Active', value: 'Active', type: 'square', color: COLORS[0] },
+      { id: 'Under Review', value: 'Under Review', type: 'square', color: COLORS[1] },
+      { id: 'Resolved', value: 'Resolved', type: 'square', color: COLORS[2] },
+      { id: 'Rejected', value: 'Rejected', type: 'square', color: COLORS[3] },
+    ]}
+  />
+</ChartCard>
 
-        {/* Poll Status Pie */}
-        <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h2 className="text-lg font-semibold text-blue-800 mb-4">Poll Status Breakdown</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pollStatusData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {pollStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartCard title="Poll Status Breakdown" data={pollStatusData} />
       </div>
 
       {/* Export Buttons */}
       <div className="flex space-x-4 mt-8">
-        <button
-          onClick={handlePreviewPDF}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
+        <button onClick={handlePreviewPDF} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
           Preview PDF
         </button>
-        <button
-          onClick={handleDownloadPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
+        <button onClick={handleDownloadPDF} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           Download PDF
         </button>
-        <button
-          onClick={handleDownloadCSV}
-          className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-100"
-        >
+        <button onClick={handleDownloadCSV} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-100">
           Download CSV
         </button>
       </div>
@@ -200,8 +177,6 @@ const CitizenReports = ({ petitions, polls }) => {
       {showPdfModal && pdfUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-[80vh] rounded-lg shadow-lg relative">
-            
-            {/* X Close Button */}
             <div className="flex justify-end p-2 border-b">
               <button
                 className="text-black text-2xl font-bold hover:text-red-600"
@@ -210,7 +185,6 @@ const CitizenReports = ({ petitions, polls }) => {
                 ×
               </button>
             </div>
-
             <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
               <Viewer fileUrl={pdfUrl} plugins={[defaultLayoutPluginInstance]} />
             </Worker>
@@ -221,12 +195,37 @@ const CitizenReports = ({ petitions, polls }) => {
   );
 };
 
-/* --- Small Components --- */
+/* --- Reusable Components --- */
 function StatCard({ label, value }) {
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md border-l-4 border-blue-500 text-center">
       <h2 className="text-blue-700 font-semibold">{label}</h2>
       <p className="text-2xl font-bold">{value}</p>
+    </div>
+  );
+}
+
+function ChartCard({ title, data }) {
+   const legendPayload = data.map((entry, index) => ({
+    id: entry.name,
+    value: entry.name,
+    type: "square",
+    color: COLORS[index % COLORS.length],
+  }));
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-md">
+      <h2 className="text-lg font-semibold text-blue-800 mb-4">{title}</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label sort={false}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          {legendPayload ? <Legend payload={legendPayload} /> : <Legend />}
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }
