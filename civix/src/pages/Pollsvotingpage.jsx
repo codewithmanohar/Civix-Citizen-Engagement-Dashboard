@@ -8,9 +8,6 @@ const PollVotingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  console.log('PollVotingPage loaded with ID:', id);
-  console.log('Location state:', location.state);
 
   const [poll, setPoll] = useState(null);
   const [votes, setVotes] = useState({});
@@ -18,12 +15,12 @@ const PollVotingPage = () => {
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewResults, setViewResults] = useState(false);
-   const role = localStorage.getItem("userRole");
+  const role = localStorage.getItem("userRole");
   const fetchPoll = async () => {
     try {
       const data = await getPollById(id);
       setPoll(data);
-      
+
       // Fetch real vote results from backend
       let totalVoteCount = 0;
       try {
@@ -36,6 +33,8 @@ const PollVotingPage = () => {
             totalVoteCount += result.count;
           });
           setVotes(updatedVotes);
+          // Set voting status based on backend response
+          setHasVoted(response.data.userHasVoted || false);
         } else {
           // No votes yet, initialize with zeros
           const updatedVotes = {};
@@ -53,9 +52,7 @@ const PollVotingPage = () => {
         });
         setVotes(updatedVotes);
       }
-      
-      // Set voting status based on backend response
-      setHasVoted(data.userHasVoted || false);
+
     } catch (err) {
       console.error("Failed to load poll:", err);
       navigate("/dashboard/citizen/polls");
@@ -80,19 +77,19 @@ const PollVotingPage = () => {
       // Submit vote
       const result = await votePoll(id, selectedOption);
       console.log('Vote submission result:', result);
-      
+
       setHasVoted(true);
       setViewResults(true);
       setSelectedOption("");
-      
+
       // Update parent polls list to show Status button
       if (window.updatePollVoteStatus) {
         window.updatePollVoteStatus(id, true);
       }
-      
+
       // Refresh poll data to get updated results
       await fetchPoll();
-      
+
       // Force refresh polls list immediately
       setTimeout(() => {
         window.dispatchEvent(new Event('pollVoted'));
@@ -131,16 +128,17 @@ const PollVotingPage = () => {
       </div>
     );
   };
-const handleBack = () => {
-  if (location.state?.returnTo) {
-    navigate(location.state.returnTo);
-  } else if (location.state?.from) {
-    navigate(location.state.from);
-  } else {
-    const role = localStorage.getItem("role");
-    navigate(role === "official" ? "/dashboard/official/polls" : "/dashboard/citizen/polls");
-  }
-};
+
+  const handleBack = () => {
+    if (location.state?.returnTo) {
+      navigate(location.state.returnTo);
+    } else if (location.state?.from) {
+      navigate(location.state.from);
+    } else {
+      const role = localStorage.getItem("role");
+      navigate(role === "official" ? "/dashboard/official/polls" : "/dashboard/citizen/polls");
+    }
+  };
 
 
   return (
@@ -160,39 +158,39 @@ const handleBack = () => {
         {poll.summary && <p className="text-gray-600 mb-2">{poll.summary}</p>}
         <p className="text-gray-500 text-sm mb-4">
           Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses:{" "}
-          {totalVotes > 0 ? totalVotes : 
-           (poll.title?.includes('metro') ? 2 : 
-            poll.title?.includes('waste') ? 3 : 
-            poll.title?.includes('speed') ? 1 : 
-            poll.title === 'My Poll' ? 2 : 
-            poll.title === 'My poll' ? 0 : 
-            poll.title?.includes('animals') ? 1 : 
-            poll.title?.includes('renewable energy source') ? 0 : 
-            poll.title === 'Renewable energy' ? 0 : 0)}
+          {totalVotes > 0 ? totalVotes :
+            (poll.title?.includes('metro') ? 2 :
+              poll.title?.includes('waste') ? 3 :
+                poll.title?.includes('speed') ? 1 :
+                  poll.title === 'My Poll' ? 2 :
+                    poll.title === 'My poll' ? 0 :
+                      poll.title?.includes('animals') ? 1 :
+                        poll.title?.includes('renewable energy source') ? 0 :
+                          poll.title === 'Renewable energy' ? 0 : 0)}
         </p>
 
-        {hasVoted || viewResults ? (
+        {/* {hasVoted || viewResults ? (
           <div className="space-y-4">
             {(role === "citizen" && hasVoted) && (
-  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-    <p className="text-green-700 font-semibold">✓ You have voted in this poll.</p>
-  </div>
-)}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <p className="text-green-700 font-semibold">✓ You have voted in this poll.</p>
+              </div>
+            )}
             <h3 className="text-lg font-semibold mb-4">Poll Results & Live Sentiment:</h3>
             <div className="space-y-3">
               {poll.options.map(renderBar)}
             </div>
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
               <p className="text-gray-700 text-sm font-medium">Total Votes:{" "}
-                {totalVotes > 0 ? totalVotes : 
-                 (poll.title?.includes('metro') ? 2 : 
-                  poll.title?.includes('waste') ? 3 : 
-                  poll.title?.includes('speed') ? 1 : 
-                  poll.title === 'My Poll' ? 2 : 
-                  poll.title === 'My poll' ? 0 : 
-                  poll.title?.includes('animals') ? 1 : 
-                  poll.title?.includes('renewable energy source') ? 0 : 
-                  poll.title === 'Renewable energy' ? 0 : 0)}
+                {totalVotes > 0 ? totalVotes :
+                  (poll.title?.includes('metro') ? 2 :
+                    poll.title?.includes('waste') ? 3 :
+                      poll.title?.includes('speed') ? 1 :
+                        poll.title === 'My Poll' ? 2 :
+                          poll.title === 'My poll' ? 0 :
+                            poll.title?.includes('animals') ? 1 :
+                              poll.title?.includes('renewable energy source') ? 0 :
+                                poll.title === 'Renewable energy' ? 0 : 0)}
               </p>
             </div>
           </div>
@@ -221,7 +219,54 @@ const handleBack = () => {
             <h3 className="text-lg font-semibold mt-6">Current Sentiment:</h3>
             {poll.options.map(renderBar)}
           </div>
+        )} */}
+
+        {hasVoted ? (
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <p className="text-green-700 font-semibold">✓ You have already voted in this poll.</p>
+            </div>
+
+            <h3 className="text-lg font-semibold mb-4">Poll Results:</h3>
+            <div className="space-y-3">
+              {poll.options.map(renderBar)}
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+              <p className="text-gray-700 text-sm font-medium">Total Votes: {totalVotes}</p>
+            </div>
+          </div>
+        ) : viewResults ? (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4">Poll Results:</h3>
+            <div className="space-y-3">
+              {poll.options.map(renderBar)}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {poll.options.map(opt => (
+              <label key={opt._id} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pollOption"
+                  value={opt.optionText}
+                  checked={selectedOption === opt.optionText}
+                  onChange={e => setSelectedOption(e.target.value)}
+                  className="form-radio h-5 w-5 text-blue-600"
+                />
+                <span className="text-gray-700">{opt.optionText}</span>
+              </label>
+            ))}
+            <button
+              onClick={handleVote}
+              className="w-full py-2 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition"
+            >
+              Submit Vote
+            </button>
+          </div>
         )}
+
       </main>
     </div>
   );
