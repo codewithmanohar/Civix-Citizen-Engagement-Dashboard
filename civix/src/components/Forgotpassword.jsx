@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import OtpForm from "./OtpForm";
+import OtpForm from "./Otpform";
 import api from "../lib/api";
 import DotsLoader from "./Loaders/DotsLoader";
 

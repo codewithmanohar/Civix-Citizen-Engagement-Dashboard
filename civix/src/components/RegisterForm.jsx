@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../lib/api"; // axios instance
-import OtpForm from "./OtpForm"; // OTP component
+import OtpForm from "./Otpform"; // OTP component
 import { Eye, EyeOff } from "lucide-react"; // eye icons
 
 export default function RegisterForm() {
