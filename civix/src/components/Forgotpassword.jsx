@@ -2,24 +2,30 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import OtpForm from "./OtpForm";
 import api from "../lib/api";
+import DotsLoader from "./Loaders/DotsLoader";
 
 export default function ForgotPassword({ onCancel }) {
   const [email, setEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!email) return toast.error("Enter your email");
-
-    // Show OTP form immediately
-    setOtpSent(true);
+    if (!/\S+@\S+\.\S+/.test(email)) return toast.error("Enter a valid email");
 
     // Send OTP in the background
     try {
-      await api.post("/auth/send-otp", { email });
-      toast.success("✅ OTP sent to your email!");
+      setLoading(true);
+      const response = await api.post("/auth/send-otp", { email });
+      if(response){
+        setOtpSent(true);
+        toast.success("✅ OTP sent to your email!");
+      } 
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -40,7 +46,10 @@ export default function ForgotPassword({ onCancel }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <div className="flex gap-2">
+          {/* {loading && <p className="text-sm text-blue-900">Sending OTP...</p>} */}
+          {loading 
+                ? <p className="text-center bg-blue-900 py-5 rounded-md"><DotsLoader color="bg-white" /></p>
+                : <div className="flex gap-2">
             <button
               type="submit"
               className="flex-1 bg-blue-900 text-white py-2 rounded-md"
@@ -55,6 +64,9 @@ export default function ForgotPassword({ onCancel }) {
               Cancel
             </button>
           </div>
+          
+          }
+          
         </form>
       ) : (
         <OtpForm email={email} fromForgotPassword={true} />

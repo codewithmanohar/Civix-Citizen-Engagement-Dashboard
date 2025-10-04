@@ -115,7 +115,7 @@ export const sendOtp = async (req, res) => {
 
     const otp = generateOtp();
     user.otp = otp;
-    user.otpExpires = Date.now() + 1 * 60 * 1000; // 1 min expiry
+    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min expiry
     await user.save();
 
     await sendVerficationCode(email, otp);
@@ -148,11 +148,11 @@ export const verifyOtp = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email , newPassword } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -160,11 +160,13 @@ export const resetPassword = async (req, res) => {
     user.otpExpires = null;
     await user.save();
 
-    res.json({ message: "Password reset successful" });
+    res.json({ success: true, message: "Password reset successful" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Reset password error:", err.message);
+    res.status(500).json({ message: "Server error. Please try again later." });
   }
 };
+
 
 export const validatePassword = async (req, res) => {
   try {

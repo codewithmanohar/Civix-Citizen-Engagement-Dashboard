@@ -90,11 +90,13 @@ export default function App() {
     location.pathname.startsWith("/dashboard/official") ||
     location.pathname.startsWith("/dashboard/citizen") ||
     location.pathname.startsWith("/login") ||
-    location.pathname.startsWith("/forgot-password");
+    location.pathname.startsWith("/forgot-password") ||
+    location.pathname.startsWith("/set-new-password");
 
 
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isLogin = location.pathname.startsWith("/login");
+  const setNewPassword = location.pathname.startsWith("/set-new-password");
 
   // Apply dark mode globally
   React.useEffect(() => {
@@ -130,7 +132,7 @@ export default function App() {
         </nav>
       )}
       <div
-        className={`flex-grow w-full ${isDashboard || isLogin ? "" : "max-w-screen-xl mx-auto"
+        className={`flex-grow w-full ${isDashboard || isLogin || setNewPassword ? "" : "max-w-screen-xl mx-auto"
           }`}
       >
         <Routes>
