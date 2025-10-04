@@ -8,6 +8,7 @@ import dashboardRoutes from "./routes/dashboard.route.js"
 import pollsRoutes from "./routes/poll.route.js";
 import voteRoutes from "./routes/vote.route.js"
 import reportRoutes from "./routes/reports.routes.js"
+import commentsRoutes from "./routes/comments.route.js"
 import cors from "cors"
 
 
@@ -41,6 +42,8 @@ app.use("/api/polls" , pollsRoutes);
 app.use("/api/vote" , voteRoutes);
 
 app.use("/api/reports", reportRoutes);
+
+app.use("/api/comments", commentsRoutes);
 
 app.listen(PORT ,()=> {
     console.log("Server is running on PORT :" , PORT);

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.get("/users", jwtAuthMiddleware, roleCheck , getUsers);
+router.get("/users", jwtAuthMiddleware , getUsers);
 router.get("/user", jwtAuthMiddleware, getUserById);
 router.put("/user", jwtAuthMiddleware,  updateUser);
 router.delete("/user/:id", jwtAuthMiddleware , roleCheck , deleteUser);
