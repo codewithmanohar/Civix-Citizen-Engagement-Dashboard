@@ -7,7 +7,7 @@ export default function PollCreationPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["",""]);
-  const [targetLocation, setTargetLocation] = useState("San Diego");
+  const [targetLocation, setTargetLocation] = useState();
   const [loading, setLoading] = useState(false);
 
   const handleOptionChange = (index, value) => {
@@ -67,18 +67,17 @@ export default function PollCreationPage() {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">Target Location</label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2"
-              value={targetLocation}
-              onChange={(e) => setTargetLocation(e.target.value)}
-            >
-              <option value="AP">AP</option>
-              <option value="San Diego">San Diego</option>
-              <option value="Los Angeles">Los Angeles</option>
-              <option value="Orange County">Orange County</option>
-            </select>
-          </div>
+  <label className="block text-sm font-semibold text-gray-800 mb-1">
+    Target Location
+  </label>
+  <input
+    type="text"
+    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+    placeholder="Enter your target location"
+    value={targetLocation}
+    onChange={(e) => setTargetLocation(e.target.value)}
+  />
+</div>
 
           {/* Options */}
           <div>

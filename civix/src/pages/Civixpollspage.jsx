@@ -44,7 +44,8 @@ const CivixPollsPage = () => {
             if (voteResponse.status === 200) {
               const voteData = voteResponse.data;
               const totalVotes = voteData.results.reduce((sum, result) => sum + result.count, 0);
-              return { ...poll, totalResponses: totalVotes };
+               const userHasVoted = voteData.userHasVoted || false;
+              return { ...poll, totalResponses: totalVotes , userHasVoted };
             }
           } catch (err) {
             console.log(`No votes for poll ${poll.title}`);

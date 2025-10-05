@@ -27,6 +27,8 @@ const CitizenReports = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const [csvData, setCsvData] = useState([]);
+const [showCsvModal, setShowCsvModal] = useState(false);
 
 
   // ✅ Fetch all data on mount
@@ -83,27 +85,46 @@ const activeEngagement = activePetitions + activePolls;
 
   // --- Generate PDF ---
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Civix - Citizen Reports", 14, 20);
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text("Civix - Citizen Reports", 14, 20);
 
-    doc.setFontSize(12);
-    doc.text("Petition Status", 14, 35);
-    autoTable(doc, {
-      startY: 40,
-      head: [["Status", "Count"]],
-      body: petitionStatus.map(p => [p.name, p.value]),
-    });
+  // --- Overall Stats Section ---
+  doc.setFontSize(14);
+  doc.text("Overall Statistics", 14, 35);
+  doc.setFontSize(12);
+  autoTable(doc, {
+    startY: 40,
+    head: [["Metric", "Count"]],
+    body: [
+      ["Total Petitions", totalPetitions],
+      ["Total Polls", totalPolls],
+      ["Active Engagement (Active Petitions + Polls)", activeEngagement],
+    ],
+  });
 
-    doc.text("Poll Status", 14, doc.lastAutoTable.finalY + 15);
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 20,
-      head: [["Status", "Count"]],
-      body: pollStatusData.map(p => [p.name, p.value]),
-    });
+  // --- Petition Status Table ---
+  let finalY = doc.lastAutoTable.finalY + 15;
+  doc.setFontSize(14);
+  doc.text("Petition Status", 14, finalY);
+  autoTable(doc, {
+    startY: finalY + 5,
+    head: [["Status", "Count"]],
+    body: petitionStatus.map(p => [p.name, p.value]),
+  });
 
-    return doc;
-  };
+  // --- Poll Status Table ---
+  finalY = doc.lastAutoTable.finalY + 15;
+  doc.text("Poll Status", 14, finalY);
+  autoTable(doc, {
+    startY: finalY + 5,
+    head: [["Status", "Count"]],
+    body: pollStatusData.map(p => [p.name, p.value]),
+  });
+
+  return doc;
+};
+
 
   const handlePreviewPDF = () => {
     const doc = generatePDF();
@@ -118,20 +139,34 @@ const activeEngagement = activePetitions + activePolls;
     doc.save("citizen_reports.pdf");
   };
 
-  const handleDownloadCSV = () => {
-    const csvData = [
-      ...petitionStatus.map(p => ({ Type: "Petition", Status: p.name, Count: p.value })),
-      ...pollStatusData.map(p => ({ Type: "Poll", Status: p.name, Count: p.value })),
-    ];
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "citizen_reports.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+ const handlePreviewCSV = () => {
+  const overallStats = [
+    { Type: "Overall", Metric: "Total Petitions", Count: totalPetitions },
+    { Type: "Overall", Metric: "Total Polls", Count: totalPolls },
+    { Type: "Overall", Metric: "Active Engagement (Active Petitions + Polls)", Count: activeEngagement },
+  ];
+
+  const combinedData = [
+    ...overallStats,
+    ...petitionStatus.map(p => ({ Type: "Petition", Metric: p.name, Count: p.value })),
+    ...pollStatusData.map(p => ({ Type: "Poll", Metric: p.name, Count: p.value })),
+  ];
+
+  setCsvData(combinedData);
+  setShowCsvModal(true);
+};
+
+const handleDownloadCSV = () => {
+  const csv = Papa.unparse(csvData);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", "citizen_reports.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
   return (
     <div className="p-6 bg-blue-50 min-h-screen">
@@ -168,10 +203,57 @@ const activeEngagement = activePetitions + activePolls;
         <button onClick={handleDownloadPDF} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           Download PDF
         </button>
+        
+
         <button onClick={handleDownloadCSV} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-100">
           Download CSV
         </button>
       </div>
+      
+
+      {showCsvModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 max-h-[80vh] overflow-y-auto rounded-lg shadow-lg relative">
+      <div className="flex justify-between items-center p-3 border-b">
+        <h2 className="text-lg font-semibold text-blue-700">CSV Preview</h2>
+        <button
+          className="text-black text-2xl font-bold hover:text-red-600"
+          onClick={() => setShowCsvModal(false)}
+        >
+          ×
+        </button>
+      </div>
+
+      <table className="min-w-full border-collapse border border-gray-300 text-sm">
+        <thead className="bg-blue-100">
+          <tr>
+            <th className="border border-gray-300 px-4 py-2">Type</th>
+            <th className="border border-gray-300 px-4 py-2">Metric</th>
+            <th className="border border-gray-300 px-4 py-2">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {csvData.map((row, index) => (
+            <tr key={index} className="text-center">
+              <td className="border border-gray-300 px-4 py-2">{row.Type}</td>
+              <td className="border border-gray-300 px-4 py-2">{row.Metric}</td>
+              <td className="border border-gray-300 px-4 py-2">{row.Count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="flex justify-end p-3 border-t">
+        <button
+          onClick={handleDownloadCSV}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Download CSV
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* PDF Modal */}
       {showPdfModal && pdfUrl && (

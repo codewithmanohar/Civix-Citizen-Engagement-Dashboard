@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPetitionById } from "../lib/petitionService";
 import api from "../lib/api";
-
+import { fetchUsers } from "../lib/reportService"; // ✅ import new service
 const OfficialPetitionView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,10 +18,9 @@ const OfficialPetitionView = () => {
   const [loading, setLoading] = useState(true);
 
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState(""); // ✅ added input for new comment
+  const [newComment, setNewComment] = useState("");
   const [replyInputs, setReplyInputs] = useState({});
-  const [updates, setUpdates] = useState([]);
-  const [newUpdate, setNewUpdate] = useState("");
+  const [showReplies, setShowReplies] = useState({});
   const [signatureCount, setSignatureCount] = useState(0);
   const [signatures, setSignatures] = useState([]);
 
@@ -32,16 +31,12 @@ const OfficialPetitionView = () => {
         const data = await getPetitionById(id);
         setPetition(data);
 
-        // ✅ fetch comments from backend
         const res = await api.get(`/comments/${id}`);
         setComments(res.data || []);
 
-        // ✅ fetch live signatures
         const sigRes = await api.get(`/petition/signature/${id}`);
         setSignatureCount(sigRes.data.total || 0);
         setSignatures(sigRes.data.signatures || []);
-
-        setUpdates(data.updates || []);
       } catch (err) {
         console.error("Failed to fetch petition", err);
       } finally {
@@ -57,23 +52,19 @@ const OfficialPetitionView = () => {
   const target = petition.signatureGoal || 100;
   const progress = (signatureCount / target) * 100;
 
-  // ✅ Post a new comment
+  // Add new comment (backend)
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
       const res = await api.post(`/comments/${id}`, { text: newComment });
-      setComments([res.data, ...comments]); // push new comment from backend
+      setComments([res.data, ...comments]);
       setNewComment("");
     } catch (err) {
       console.error("Error posting comment", err);
     }
   };
 
-  const handleReplyChange = (commentId, value) => {
-    setReplyInputs((prev) => ({ ...prev, [commentId]: value }));
-  };
-
-  // Replies are still local
+  // Add local reply only
   const handleAddReply = (commentId) => {
     const replyText = replyInputs[commentId]?.trim();
     if (!replyText) return;
@@ -93,19 +84,15 @@ const OfficialPetitionView = () => {
 
     setComments(updatedComments);
     setReplyInputs((prev) => ({ ...prev, [commentId]: "" }));
+    setShowReplies((prev) => ({ ...prev, [commentId]: true })); // show input after adding
   };
 
-  const handleAddUpdate = () => {
-    if (newUpdate.trim()) {
-      const newEntry = {
-        id: Date.now(),
-        user: currentUser.name,
-        text: newUpdate,
-        createdAt: new Date().toISOString(),
-      };
-      setUpdates([newEntry, ...updates]);
-      setNewUpdate("");
-    }
+  const toggleReplies = (commentId) => {
+    setShowReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  };
+
+  const handleReplyChange = (commentId, value) => {
+    setReplyInputs((prev) => ({ ...prev, [commentId]: value }));
   };
 
   return (
@@ -117,9 +104,7 @@ const OfficialPetitionView = () => {
       <p className="text-gray-600 mb-4">Created by: {petition.createdBy?.name || "Unknown"}</p>
       <p className="mb-4">{petition.description}</p>
       <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-4">
-        Signatures: {signatureCount} / {target}
-      </p>
+      <p className="text-sm text-gray-500 mb-4">Signatures: {signatureCount} / {target}</p>
 
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
@@ -143,8 +128,7 @@ const OfficialPetitionView = () => {
           <ul className="list-disc list-inside">
             {signatures.map((sig, index) => (
               <li key={index}>
-                {sig.user?.name || sig.user} (on{" "}
-                {new Date(sig.signedAt).toLocaleDateString()})
+                {sig.user?.name || sig.user} (on {new Date(sig.signedAt).toLocaleDateString()})
               </li>
             ))}
           </ul>
@@ -157,44 +141,49 @@ const OfficialPetitionView = () => {
         <div className="space-y-4 mb-3">
           {comments.length > 0 ? (
             comments.map((comment) => (
-              <div key={comment._id || comment.id} className="p-3 border rounded bg-gray-50">
+              <div key={comment._id || comment.id} className="p-3 border rounded bg-gray-50 relative">
                 <p className="text-sm font-medium">{comment.user?.name || "Anonymous"}</p>
                 <p className="text-sm mb-2">{comment.text}</p>
-                <span className="text-xs text-gray-400">
-                  {new Date(comment.createdAt || Date.now()).toLocaleString()}
-                </span>
+                <span className="text-xs text-gray-400">{new Date(comment.createdAt || Date.now()).toLocaleString()}</span>
+
+                {/* Reply button */}
+                  <button
+                  onClick={() => toggleReplies(comment._id || comment.id)}
+                  className="absolute top-3 right-3 text-blue-700 text-sm font-xl hover:underline"
+                >
+                  Reply
+                </button>
 
                 {/* Replies */}
-                {comment.replies?.length > 0 && (
+                {showReplies[comment._id || comment.id] && (
                   <div className="ml-4 mt-2 space-y-2">
-                    {comment.replies.map((r) => (
-                      <div key={r.id} className="p-2 border rounded bg-gray-100">
-                        <p className="text-sm font-medium">{r.user}</p>
-                        <p className="text-sm">{r.text}</p>
-                        <span className="text-xs text-gray-400">
-                          {new Date(r.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
+                    {comment.replies?.length > 0 &&
+                      comment.replies.map((r) => (
+                        <div key={r.id} className="p-2 border rounded bg-gray-100">
+                          <p className="text-sm font-medium">{r.user}</p>
+                          <p className="text-sm">{r.text}</p>
+                          <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleString()}</span>
+                        </div>
+                      ))}
+
+                    {/* Reply Input */}
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        value={replyInputs[comment._id || comment.id] || ""}
+                        onChange={(e) => handleReplyChange(comment._id || comment.id, e.target.value)}
+                        placeholder="Reply to comment..."
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => handleAddReply(comment._id || comment.id)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                      >
+                        Reply
+                      </button>
+                    </div>
                   </div>
                 )}
-
-                {/* Official Reply Input */}
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={replyInputs[comment._id || comment.id] || ""}
-                    onChange={(e) => handleReplyChange(comment._id || comment.id, e.target.value)}
-                    placeholder="Reply to comment..."
-                    className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={() => handleAddReply(comment._id || comment.id)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-                  >
-                    Reply
-                  </button>
-                </div>
               </div>
             ))
           ) : (
@@ -202,7 +191,7 @@ const OfficialPetitionView = () => {
           )}
         </div>
 
-        {/* Comment Input */}
+        {/* Add Comment Input */}
         <div className="flex gap-2">
           <input
             type="text"
@@ -219,39 +208,9 @@ const OfficialPetitionView = () => {
           </button>
         </div>
       </div>
-
-      {/* Updates */}
-      <div className="mb-6">
-        <h2 className="font-semibold mb-2">Updates</h2>
-        <div className="space-y-3 mb-3">
-          {updates.map((u) => (
-            <div key={u.id} className="p-2 border rounded bg-gray-50">
-              <p className="text-sm font-medium">{u.user}</p>
-              <p className="text-sm">{u.text}</p>
-              <span className="text-xs text-gray-400">{u.createdAt || u.time}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Official update input */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newUpdate}
-            onChange={(e) => setNewUpdate(e.target.value)}
-            placeholder="Post an update..."
-            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleAddUpdate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Post
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
 
 export default OfficialPetitionView;
+
