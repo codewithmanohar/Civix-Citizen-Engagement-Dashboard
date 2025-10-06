@@ -6,17 +6,34 @@ import api from "../lib/api";
 export default function OfficialUnderReviewPetitions({ approvedPetitions: dynamicApproved }) {
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+const [loading, setLoading] = useState(false);
 
   // Fetch petitions that are under review
-  const getUnderReviewPetitions = async () => {
+   const getUnderReviewPetitions = async () => {
     try {
+      setLoading(true);
       const response = await api.get("/petition");
       if (response.data) {
         const underReview = response.data.filter((p) => p.status === "Under Review");
-        setApprovedPetitions(underReview);
+
+        // ✅ Fetch signature counts for each petition
+        const petitionsWithSignatures = await Promise.all(
+          underReview.map(async (p) => {
+            try {
+              const sigRes = await api.get(`/petition/signature/${p._id}`);
+              return { ...p, signatureCount: sigRes.data.total || 0 };
+            } catch {
+              return { ...p, signatureCount: 0 };
+            }
+          })
+        );
+
+        setApprovedPetitions(petitionsWithSignatures);
       }
     } catch (err) {
       console.error("Error fetching petitions:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +102,7 @@ export default function OfficialUnderReviewPetitions({ approvedPetitions: dynami
                   <tr key={p._id} className="border-t hover:bg-gray-50">
                     <td className="p-3 font-medium text-gray-700">{p.title}</td>
                     <td className="p-3">{p.createdBy?.name || "Unknown"}</td>
-                    <td className="p-3">{p.signatures?.length || 0}</td>
+                    <td className="p-3">{p.signatureCount}</td>
                     <td className="p-3">{new Date(p.createdAt).toLocaleDateString()}</td>
                     <td className="p-3">
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium">

@@ -10,19 +10,34 @@ export default function OfficialActivePetitions({ onApprove }) {
 
   // Fetch pending petitions
   const getActivePetitions = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/petition");
-      if (response.data) {
-        const activePetitions = response.data.filter((p) => p.status === "Active");
-        setActivePetition(activePetitions);
-      }
-    } catch (err) {
-      console.error("Error fetching active petitions:", err);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const response = await api.get("/petition");
+    if (response.data) {
+      const activePetitions = response.data.filter((p) => p.status === "Active");
+
+      // Fetch signature counts for each petition
+      const petitionsWithSignatures = await Promise.all(
+        activePetitions.map(async (p) => {
+          try {
+            const sigRes = await api.get(`/petition/signature/${p._id}`);
+            return { ...p, signatureCount: sigRes.data.total || 0 };
+          } catch {
+            return { ...p, signatureCount: 0 };
+          }
+        })
+      );
+
+      setActivePetition(petitionsWithSignatures);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching active petitions:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  
 
   useEffect(() => {
     getActivePetitions();
@@ -103,7 +118,7 @@ export default function OfficialActivePetitions({ onApprove }) {
                   <tr key={p._id} className="border-t hover:bg-gray-50">
                     <td className="p-3 font-medium text-gray-700">{p.title}</td>
                     <td className="p-3">{p.createdBy?.name || "Unknown"}</td>
-                    <td className="p-3">{p.signatures?.length || 0}</td>
+                    <td className="p-3">{p.signatureCount}</td>
                     <td className="p-3">{new Date(p.createdAt).toLocaleDateString()}</td>
                     <td className="p-3">
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">

@@ -183,17 +183,20 @@ export default function OfficialDashboard() {
           </div>
 
           <div className="bg-blue-100 p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-blue-800 mb-2">Petitions by Category</h2>
-            <div className="h-64">
-              {statsLoader ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <Pie data={pieData} />
-              )}
-            </div>
-          </div>
+  <h2 className="text-lg font-semibold text-blue-800 mb-2">Petitions by Category</h2>
+  <div className="h-64">
+    {statsLoader ? (
+      <div className="flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    ) : (
+      <div className="flex justify-center items-center h-full">
+        <Pie data={pieData} />
+      </div>
+    )}
+  </div>
+</div>
+
         </div>
 
         {/* Updates */}

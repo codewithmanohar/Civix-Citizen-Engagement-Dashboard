@@ -12,10 +12,22 @@ export default function OfficialResolvedPetitions() {
   const getResolvedPetitions = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/petition"); // ✅ Use main petitions route
+      const response = await api.get("/petition");
       if (response.data) {
         const resolved = response.data.filter((p) => p.status === "Resolved");
-        setResolvedPetitions(resolved);
+
+        const petitionsWithSignatures = await Promise.all(
+          resolved.map(async (p) => {
+            try {
+              const sigRes = await api.get(`/petition/signature/${p._id}`);
+              return { ...p, signatureCount: sigRes.data.total || 0 };
+            } catch {
+              return { ...p, signatureCount: 0 };
+            }
+          })
+        );
+
+        setResolvedPetitions(petitionsWithSignatures);
       }
     } catch (err) {
       console.error("Error fetching resolved petitions:", err);
@@ -75,12 +87,13 @@ export default function OfficialResolvedPetitions() {
                   <tr key={p._id} className="border-t hover:bg-gray-50">
                     <td className="p-3 font-medium text-gray-700">{p.title}</td>
                     <td className="p-3">{p.createdBy?.name || "Unknown"}</td>
-                    <td className="p-3">{p.signatures?.length || 0}</td>
+                    <td className="p-3">{p.signatureCount}</td>
                     <td className="p-3">
-                      {p.resolutionDate
-                        ? new Date(p.resolutionDate).toLocaleDateString()
-                        : "N/A"}
-                    </td>
+  {p.updatedAt
+    ? new Date(p.updatedAt).toLocaleDateString()
+    : "N/A"}
+</td>
+
                     <td className="p-3">
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
                         {p.status}
