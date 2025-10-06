@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   PieChart,
@@ -19,6 +20,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
 import api from "../lib/api";
+import { fetchPetitions, fetchUsers } from "../lib/reportService";
 
 // PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
@@ -42,21 +44,16 @@ export default function ReportsPage() {
   const [petitionCategories, setPetitionCategories] = useState([]);
   const [pollStatus, setPollStatus] = useState([]);
   const [pollTotal, setPollTotal] = useState(0);
- 
-  const [trendsData, setTrendsData] = useState([
-    { month: "Jan", petitions: 20, polls: 50 },
-    { month: "Feb", petitions: 35, polls: 70 },
-    { month: "Mar", petitions: 28, polls: 60 },
-    { month: "Apr", petitions: 45, polls: 90 },
-    { month: "May", petitions: 38, polls: 75 },
-    { month: "Jun", petitions: 42, polls: 85 },
-    { month: "Jul", petitions: 30, polls: 60 },
-    { month: "Aug", petitions: 50, polls: 95 },
-    { month: "Sep", petitions: 40, polls: 70 },
-    { month: "Oct", petitions: 55, polls: 100 },
-    { month: "Nov", petitions: 48, polls: 80 },
-    { month: "Dec", petitions: 60, polls: 110 },
-  ]);
+  const [activeUsers, setActiveUsers] = useState(0);
+const [avgSignatures, setAvgSignatures] = useState(0);
+const [topCategory, setTopCategory] = useState("");
+
+// Inside getEngagementData, after calculating avgSignatures:
+
+
+
+  const [trendsData, setTrendsData] = useState([]);
+
 
   const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#f97316", "#ef4444"];
 
@@ -108,6 +105,60 @@ const getVoterTurnout = async () => {
     console.error("Error fetching voter turnout:", err);
   }
 };
+const getEngagementData = async () => {
+  try {
+    // 1. Active Users
+    const users = await fetchUsers();
+    setActiveUsers(users.length);
+
+    // 2. Petition data
+    const petitions = await fetchPetitions();
+
+    // Avg. signatures: fetch all signature counts concurrently
+    const signaturePromises = petitions.map((petition) =>
+      api.get(`/petition/signature/${petition._id}`)
+    );
+
+    const signatureResults = await Promise.all(signaturePromises);
+
+    const totalSignatures = signatureResults.reduce(
+      (sum, res) => sum + (res.data.total || 0),
+      0
+    );
+
+    const avg = petitions.length > 0 ? totalSignatures / petitions.length : 0;
+    setAvgSignatures(avg.toFixed(2));
+
+    // Top department
+    const categoryCount = {};
+petitions.forEach(p => {
+  const cat = p.category || "Unknown";
+  categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+});
+const topCat = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0];
+setTopCategory(topCat ? topCat[0] : "N/A");
+
+  } catch (err) {
+    console.error("Error fetching engagement data:", err);
+  }
+};
+const getCombinedTrends = async () => {
+  try {
+    const res = await api.get("reports/trends/combined");
+    if (res.data.success && res.data.trends) {
+      // Transform to a format suitable for recharts
+      const transformed = res.data.trends.map(item => ({
+        month: item.month,        // e.g., "2025-09"
+        petitions: item.petitions || 0,
+        polls: item.polls || 0,
+        votes: item.votes || 0,  // optional: you can use this later if needed
+      }));
+      setTrendsData(transformed);
+    }
+  } catch (err) {
+    console.error("Error fetching combined trends:", err);
+  }
+};
 
 
 
@@ -116,6 +167,8 @@ const getVoterTurnout = async () => {
   useEffect(() => {
     getStats();
     getVoterTurnout(); 
+    getEngagementData();
+    getCombinedTrends();
   }, []);
 
   // --- Export Functions ---
@@ -152,13 +205,28 @@ const getVoterTurnout = async () => {
       head: [["Status", "Count"]],
       body: pollStatus.map((p) => [p.name, p.value]),
     });
+ 
+    doc.text("Citizen Engagement", 14, doc.lastAutoTable.finalY + 15);
+autoTable(doc, {
+  startY: doc.lastAutoTable.finalY + 20,
+  head: [["Metric", "Value"]],
+  body: [
+    ["Active Users", activeUsers],
+    ["Avg. Signatures", avgSignatures],
+    ["Top Category", topCategory],
+  ],
+});
 
-    doc.text("Trends", 14, doc.lastAutoTable.finalY + 15);
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 20,
-      head: [["Month", "Petitions", "Polls"]],
-      body: trendsData.map((t) => [t.month, t.petitions, t.polls]),
-    });
+    
+
+doc.text("Trends", 14, doc.lastAutoTable.finalY + 15);
+autoTable(doc, {
+  startY: doc.lastAutoTable.finalY + 20,
+  head: [["Month", "Petitions", "Polls", "Votes"]],
+  body: trendsData.map((t) => [t.month, t.petitions, t.polls, t.votes]),
+});
+
+
 
     return doc;
   };
@@ -278,10 +346,10 @@ const getVoterTurnout = async () => {
           Citizen Engagement
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <EngagementCard label="Active Users" value="1,230" />
-          <EngagementCard label="Avg. Signatures" value="87" />
-          <EngagementCard label="Top Dept." value="Transport" />
-        </div>
+  <EngagementCard label="Active Users" value={activeUsers} />
+  <EngagementCard label="Avg. Signatures" value={avgSignatures} />
+  <EngagementCard label="Top Dept." value={topCategory} />
+</div>
       </div>
 
       {/* Trends */}
@@ -290,26 +358,28 @@ const getVoterTurnout = async () => {
           Trends & Timeline
         </h2>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={trendsData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="petitions"
-              stroke="#2563eb"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="polls"
-              stroke="#3b82f6"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+  <LineChart data={trendsData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="month" />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    <Line
+      type="monotone"
+      dataKey="petitions"
+      stroke="#2563eb"
+      strokeWidth={2}
+    />
+    <Line
+      type="monotone"
+      dataKey="polls"
+      stroke="#3b82f6"
+      strokeWidth={2}
+    />
+    
+  </LineChart>
+</ResponsiveContainer>
+
       </div>
 
       {/* Export Buttons */}

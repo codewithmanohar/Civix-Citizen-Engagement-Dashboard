@@ -15,7 +15,7 @@ export const createPoll = async (req, res) => {
     const poll = new Poll({
       title,
       options: options.map((opt) => ({ optionText: opt })),
-      createdBy: req.user.id, 
+      createdBy: req.user.id,
       targetLocation,
     });
 
@@ -29,47 +29,39 @@ export const createPoll = async (req, res) => {
 
 export const getPolls = async (req, res) => {
   try {
-    console.log('=== getPolls FUNCTION CALLED ===');
-    console.log('User ID:', req.user ? req.user.id : 'no user');
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
     // // Fetch only polls with status "Active"
     const polls = await Poll.find({ status: "Active" }).populate("createdBy", "name email");
-    
+
     // Add vote counts and user voting status for each poll
     const pollsWithData = await Promise.all(
       polls.map(async (poll) => {
         // Get total vote count for this poll
         const voteCount = await Vote.countDocuments({ pollId: poll._id });
-        
+
         let userHasVoted = false;
         if (req.user && req.user.id) {
           try {
-            console.log(`Checking votes for pollId: ${poll._id} (type: ${typeof poll._id}), userId: ${req.user.id} (type: ${typeof req.user.id})`);
-            
             // Check all votes for this poll to debug
             const allVotesForPoll = await Vote.find({ pollId: poll._id });
-            console.log(`All votes for poll ${poll.title}:`, allVotesForPoll.map(v => ({ userId: v.userId, userIdType: typeof v.userId })));
-            
-            const existingVote = await Vote.findOne({ 
-              pollId: poll._id, 
-              userId: req.user.id 
+
+            const existingVote = await Vote.findOne({
+              pollId: poll._id,
+              userId: req.user.id
             });
             userHasVoted = !!existingVote;
-            console.log(`Poll ${poll.title}: User ${req.user.id} hasVoted = ${userHasVoted}`);
           } catch (err) {
             console.error('Error checking vote status:', err);
           }
         }
-        
-        return { 
-          ...poll.toObject(), 
+
+        return {
+          ...poll.toObject(),
           totalResponses: voteCount,
-          userHasVoted 
+          userHasVoted
         };
       })
     );
-    
+
     res.status(200).json(pollsWithData);
 
   } catch (error) {
@@ -79,13 +71,13 @@ export const getPolls = async (req, res) => {
 
 export const getMyPolls = async (req, res) => {
   try {
-    
+
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
     }
-    
+
     const polls = await Poll.find({ createdBy: req.user.id }).populate("createdBy", "name email");
-    console.log("Found polls for user:", polls.length);
+    // console.log("Found polls for user:", polls.length);
     res.status(200).json(polls);
   } catch (error) {
     console.error("Error in getMyPolls:", error);
@@ -93,11 +85,11 @@ export const getMyPolls = async (req, res) => {
   }
 };
 
-export const getClosedPolls = async (req , res) => {
+export const getClosedPolls = async (req, res) => {
   try {
 
-    const polls = await Poll.find({status : "Closed"}); 
-    res.status(200).json({polls});
+    const polls = await Poll.find({ status: "Closed" });
+    res.status(200).json({ polls });
 
   } catch (error) {
     console.log("error to fetching the closed polls ")
@@ -114,9 +106,9 @@ export const getPollById = async (req, res) => {
     let userHasVoted = false;
     if (req.user && req.user.id) {
       try {
-        const existingVote = await Vote.findOne({ 
-          pollId: poll._id, 
-          userId: req.user.id 
+        const existingVote = await Vote.findOne({
+          pollId: poll._id,
+          userId: req.user.id
         });
         userHasVoted = !!existingVote;
         console.log(`getPollById - Poll ${poll.title}: User ${req.user.id} hasVoted = ${userHasVoted}, vote found:`, existingVote ? 'YES' : 'NO');
@@ -168,16 +160,14 @@ export const getPollResults = async (req, res) => {
       return res.status(404).json({ message: "Poll not found" });
     }
 
-    // Aggregate votes from Vote collection
+    // Aggregate votes
     const votes = await Vote.aggregate([
       { $match: { pollId: poll._id } },
       { $group: { _id: "$selectedOption", count: { $sum: 1 } } },
     ]);
 
-    // Total votes
     const totalVotes = votes.reduce((acc, v) => acc + v.count, 0);
 
-    // Format results with percentages
     const results = poll.options.map((opt) => {
       const voteObj = votes.find((v) => v._id === opt.optionText);
       const count = voteObj ? voteObj.count : 0;
@@ -190,9 +180,20 @@ export const getPollResults = async (req, res) => {
       };
     });
 
+    let userHasVoted = false;
+   
+    if (req.user && req.user.id) {
+      const existingVote = await Vote.findOne({
+        pollId: pollId,
+        userId: req.user.id, 
+      });
+      userHasVoted = !!existingVote;
+    }
+
     res.status(200).json({
       pollId: poll._id,
       title: poll.title,
+      userHasVoted,
       results,
       totalVotes,
       poll: {

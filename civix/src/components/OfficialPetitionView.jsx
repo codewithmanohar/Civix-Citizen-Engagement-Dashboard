@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPetitionById } from "../lib/petitionService";
+import api from "../lib/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const OfficialPetitionView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Pull logged-in official user from localStorage
   const currentUser = {
     _id: localStorage.getItem("userId"),
     name: localStorage.getItem("name") || "Official",
@@ -17,21 +19,28 @@ const OfficialPetitionView = () => {
   const [petition, setPetition] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
-  const [updates, setUpdates] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [newUpdate, setNewUpdate] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [signatureCount, setSignatureCount] = useState(0);
+  const [signatures, setSignatures] = useState([]);
 
+  // ---------------- FETCH PETITION + COMMENTS ----------------
   useEffect(() => {
     const fetchPetition = async () => {
       try {
         const data = await getPetitionById(id);
         setPetition(data);
 
-        const savedComments = localStorage.getItem(`comments-${id}`);
-        setComments([...(data.comments || []), ...(savedComments ? JSON.parse(savedComments) : [])]);
-        setUpdates(data.updates || []);
+        const res = await api.get(`/comments/${id}`);
+        setComments(res.data || []);
+
+        const sigRes = await api.get(`/petition/signature/${id}`);
+        setSignatureCount(sigRes.data.total || 0);
+        setSignatures(sigRes.data.signatures || []);
       } catch (err) {
         console.error("Failed to fetch petition", err);
+        toast.error("Failed to load petition details");
       } finally {
         setLoading(false);
       }
@@ -39,64 +48,100 @@ const OfficialPetitionView = () => {
     fetchPetition();
   }, [id]);
 
-  if (loading) return <div className="p-8">Loading petition details...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-600">Loading petition details...</div>;
   if (!petition) return <p className="text-center mt-10">Petition not found!</p>;
 
-  const totalSignatures = petition.signatures?.length || 0;
   const target = petition.signatureGoal || 100;
-  const progress = (totalSignatures / target) * 100;
+  const progress = (signatureCount / target) * 100;
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const newEntry = { id: Date.now(), user: currentUser.name, text: newComment, time: "Just now" };
-      const updated = [newEntry, ...comments];
-      setComments(updated);
-      localStorage.setItem(`comments-${id}`, JSON.stringify(updated));
+  // ---------------- ADD COMMENT ----------------
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      toast.warn("Please write a comment before posting.");
+      return;
+    }
+    try {
+      const res = await api.post(`/comments/${id}`, { text: newComment });
+      setComments([res.data, ...comments]);
       setNewComment("");
+      toast.success("Comment added successfully!");
+    } catch (err) {
+      console.error("Error posting comment", err);
+      toast.error("Failed to post comment.");
     }
   };
 
-  const handleAddUpdate = () => {
-    if (newUpdate.trim()) {
-      const newEntry = { id: Date.now(), user: currentUser.name, text: newUpdate, time: "Just now" };
-      setUpdates([newEntry, ...updates]);
-      setNewUpdate("");
+  // ---------------- EDIT COMMENT ----------------
+  const handleEditComment = async (commentId) => {
+    if (!editText.trim()) {
+      toast.warn("Comment cannot be empty.");
+      return;
+    }
+    try {
+      const res = await api.put(`/comments/${commentId}`, { text: editText });
+      setComments(comments.map((c) => (c._id === commentId ? res.data : c)));
+      setEditingComment(null);
+      setEditText("");
+      toast.info("Comment updated successfully!");
+    } catch (err) {
+      console.error("Error editing comment:", err);
+      toast.error("Failed to edit comment.");
+    }
+  };
+
+  // ---------------- DELETE COMMENT ----------------
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    try {
+      await api.delete(`/comments/${commentId}`);
+      setComments(comments.filter((c) => c._id !== commentId));
+      toast.success("Comment deleted!");
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      toast.error("Failed to delete comment.");
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg mt-10">
+    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-2xl mt-10 relative">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
+
       {/* Petition Info */}
-      <h1 className="text-3xl font-bold mb-2">{petition.title}</h1>
-      <p className="text-gray-600 mb-2">Category: {petition.category}</p>
-      <p className="text-gray-600 mb-2">Location: {petition.location || "Not specified"}</p>
-      <p className="text-gray-600 mb-4">Created by: {petition.createdBy?.name || "Unknown"}</p>
-      <p className="mb-4">{petition.description}</p>
-      <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-4">Signatures: {totalSignatures} / {target}</p>
+      <h1 className="text-3xl font-bold mb-3 text-gray-800">{petition.title}</h1>
+      <p className="text-gray-600 mb-1"><strong>Category:</strong> {petition.category}</p>
+      <p className="text-gray-600 mb-1"><strong>Location:</strong> {petition.location || "Not specified"}</p>
+      <p className="text-gray-600 mb-3"><strong>Created by:</strong> {petition.createdBy?.name || "Unknown"}</p>
+      <p className="mb-4 text-gray-700 leading-relaxed">{petition.description}</p>
+      <p className="text-sm text-gray-500 mb-1">Status: <span className="font-medium text-gray-700">{petition.status}</span></p>
+      <p className="text-sm text-gray-500 mb-4">
+        Signatures: <span className="font-medium text-gray-700">{signatureCount}</span> / {target}
+      </p>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
+      <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+        <div
+          className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        ></div>
       </div>
 
       {/* Back Button */}
       <div className="flex gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+          className="px-5 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
         >
-          Back
+          ← Back
         </button>
       </div>
 
       {/* Signed By */}
-      {petition.signatures?.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-semibold mb-2">Signed By:</h2>
-          <ul className="list-disc list-inside">
-            {petition.signatures.map((sig, index) => (
-              <li key={index}>
+      {signatures.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-semibold mb-3 text-lg text-gray-800">Signed By:</h2>
+          <ul className="list-disc list-inside text-gray-700">
+            {signatures.map((sig, i) => (
+              <li key={i}>
                 {sig.user?.name || sig.user} (on {new Date(sig.signedAt).toLocaleDateString()})
               </li>
             ))}
@@ -104,80 +149,97 @@ const OfficialPetitionView = () => {
         </div>
       )}
 
-      {/* Comments */}
-     
-
-      {/* Updates (Officials can always post updates) */}
+      {/* ---------------- COMMENTS SECTION ---------------- */}
       <div className="mb-6">
-        <h2 className="font-semibold mb-2">Updates</h2>
-        <div className="space-y-3 mb-3">
-          {updates.map((u) => (
-            <div key={u.id} className="p-2 border rounded bg-gray-50">
-              <p className="text-sm font-medium">{u.user}</p>
-              <p className="text-sm">{u.text}</p>
-              <span className="text-xs text-gray-400">{u.time}</span>
-            </div>
-          ))}
-        </div>
+        <h2 className="font-semibold mb-4 text-xl text-gray-800">Comments</h2>
 
-        {/* Official update input */}
-        <div className="flex gap-2">
+        {/* Add Comment Input */}
+        <div className="flex gap-2 mb-5">
           <input
             type="text"
-            value={newUpdate}
-            onChange={(e) => setNewUpdate(e.target.value)}
-            placeholder="Post an update..."
-            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
+            className="flex-1 px-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
           <button
-            onClick={handleAddUpdate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+            onClick={handleAddComment}
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
           >
             Post
           </button>
         </div>
+
+        {/* Comments List */}
+        <div className="space-y-4">
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div
+                key={comment._id}
+                className="p-4 border rounded-xl bg-gray-50 hover:bg-gray-100 transition-all"
+              >
+                {editingComment === comment._id ? (
+                  <div>
+                    <textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full border rounded-lg p-2 mb-2 resize-none focus:ring-2 focus:ring-blue-500"
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditComment(comment._id)}
+                        className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingComment(null)}
+                        className="px-3 py-1 bg-gray-400 text-white rounded text-sm hover:bg-gray-500"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm font-medium text-gray-800">
+                        {comment.user?.name || "Anonymous"}
+                      </p>
+                      {comment.user?._id === currentUser._id && (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              setEditingComment(comment._id);
+                              setEditText(comment.text);
+                            }}
+                            className="text-blue-600 text-xs font-medium hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteComment(comment._id)}
+                            className="text-red-600 text-xs font-medium hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </p>
+                  </>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">No comments yet. Be the first!</p>
+          )}
+        </div>
       </div>
-      {/* Share */}
-<div>
-  <h2 className="font-semibold mb-2">Share:</h2>
-  <div className="flex gap-3">
-    {/* Facebook */}
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-    >
-      Facebook
-    </a>
-
-    {/* Twitter */}
-    <a
-      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(petition.title)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600"
-    >
-      Twitter
-    </a>
-
-    {/* Email */}
-    <a
-  href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
-    "Check out this petition!"
-  )}&body=${encodeURIComponent(
-    (petition.title || "Interesting petition") + " - " + window.location.href
-  )}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
->
-  Email
-</a>
-
-
-  </div>
-    </div>
     </div>
   );
 };

@@ -17,7 +17,7 @@ router.get("/", (req, res, next) => {
 router.get("/my-polls", jwtAuthMiddleware, getMyPolls);
 router.get("/closed", getClosedPolls);
 router.get("/:id", getPollById);                  
-router.get("/:id/results", getPollResults);
+router.get("/:id/results", jwtAuthMiddleware , getPollResults);
 router.patch("/:pollId/close", closePoll);
 
 export default router;

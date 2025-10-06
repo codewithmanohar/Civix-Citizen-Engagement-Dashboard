@@ -131,6 +131,7 @@ const PetitionPage = () => {
               <option>Active</option>
               <option>Under Review</option>
               <option>Resolved</option>
+              <option>Rejected</option>
             </select>
 
             <select

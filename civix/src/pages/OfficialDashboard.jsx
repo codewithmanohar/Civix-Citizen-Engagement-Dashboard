@@ -1,9 +1,7 @@
-
-// src/components/OfficialDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { resolvePath, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -18,26 +16,36 @@ export default function OfficialDashboard() {
     rejectedPetition: 0,
   });
 
-  const [categoryStats, setCategoryStats] = useState({
-    labels: [],
-    data: []
-  });
-
-
+  const [categoryStats, setCategoryStats] = useState({ labels: [], data: [] });
   const [recentPetition, setRecentPetition] = useState([]);
-
   const [petitionLoader, setPetitionLoader] = useState(false);
+  const [statsLoader, setStatsLoader] = useState(false);
 
-  const [statsLoader , setStatsLoader ] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false); // Modal visibility
 
+  // ------------------ SIGN OUT ------------------
+  const handleSignout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");
+    sessionStorage.clear();
+    navigate("/");
+  };
 
-  const updates = [
-    "System Update: New Petition Workflow",
-    "Petition API Interface Launched",
-    "Scheduled Maintenance (Sept 15, 2–4 AM)",
-  ];
+  // ------------------ BACK BUTTON LOGIC ------------------
+  useEffect(() => {
+    const handleBack = (event) => {
+      event.preventDefault();
+      setShowConfirm(true); // Show custom modal instead of window.confirm
+      window.history.pushState(null, "", window.location.pathname); // Stay on page
+    };
 
+    window.history.pushState(null, "", window.location.pathname); // Push initial state
+    window.addEventListener("popstate", handleBack);
 
+    return () => window.removeEventListener("popstate", handleBack);
+  }, []);
+
+  // ------------------ API FETCHES ------------------
   const getStats = async () => {
     const response = await api.get("/dashboard/petition-stats");
     const { total, under_review, resolved, rejected } = response.data.stats;
@@ -47,67 +55,48 @@ export default function OfficialDashboard() {
       resolvedIssues: resolved,
       rejectedPetition: rejected,
     });
-  }
+  };
 
   const getRecentPetition = async () => {
     try {
       setPetitionLoader(true);
       const response = await api.get("/dashboard/recent-petitions");
-      const petitions = response.data.recent;
       setRecentPetition(
-        petitions.map((item) => ({
+        response.data.recent.map((item) => ({
           title: item.title,
-          by: item.createdBy?.name || "Unknown",   // safe fallback
-          signatures: item.signatures?.length || 0, // count signatures
-          status: item.status
+          by: item.createdBy?.name || "Unknown",
+          signatures: item.signatures?.length || 0,
+          status: item.status,
         }))
-      )
-    } catch (error) {
-      console.error("Error fetching petition stats:", err);
+      );
+    } catch (err) {
+      console.error(err);
     } finally {
       setPetitionLoader(false);
     }
-
-  }
+  };
 
   const getPieData = async () => {
     try {
       setStatsLoader(true);
       const response = await api.get("/dashboard/petition-category-stats");
-      const data = response.data;
-      if (data.success) {
-        setCategoryStats({
-          labels: data.labels,
-          data: data.data
-        });
+      if (response.data.success) {
+        setCategoryStats({ labels: response.data.labels, data: response.data.data });
       }
-    } catch (error) {
-      console.error("Error fetching category stats:", err);
-    }finally{
-       setStatsLoader(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setStatsLoader(false);
     }
+  };
 
-  }
   useEffect(() => {
-    getRecentPetition();
     getStats();
+    getRecentPetition();
     getPieData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
-    sessionStorage.clear();
-    navigate("/");
-  };
-
-  const statItems = [
-    { label: "Total Petitions", value: stats.totalPetitions },
-    { label: "Under Review", value: stats.underReview },
-    { label: "Resolved Issues", value: stats.resolvedIssues },
-    { label: "Rejected Petitions", value: stats.rejectedPetition },
-  ];
-
+  // ------------------ CHART DATA ------------------
   const pieData = {
     labels: categoryStats.labels,
     datasets: [
@@ -119,10 +108,21 @@ export default function OfficialDashboard() {
     ],
   };
 
+  const statItems = [
+    { label: "Total Petitions", value: stats.totalPetitions },
+    { label: "Under Review", value: stats.underReview },
+    { label: "Resolved Issues", value: stats.resolvedIssues },
+    { label: "Rejected Petitions", value: stats.rejectedPetition },
+  ];
+
+  const updates = [
+    "System Update: New Petition Workflow",
+    "Petition API Interface Launched",
+    "Scheduled Maintenance (Sept 15, 2–4 AM)",
+  ];
+
   return (
     <div className="w-full min-h-screen bg-blue-50 p-6">
-      
-
       <div className="bg-white p-6 rounded-lg shadow">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -164,12 +164,13 @@ export default function OfficialDashboard() {
                       <td className="p-2">{p.signatures}</td>
                       <td className="p-2">
                         <span
-                          className={`px-2 py-1 rounded text-white text-xs ${p.status === "Resolved"
+                          className={`px-2 py-1 rounded text-white text-xs ${
+                            p.status === "Resolved"
                               ? "bg-green-600"
                               : p.status === "Rejected"
-                                ? "bg-red-600"
-                                : "bg-blue-500 text-black"
-                            }`}
+                              ? "bg-red-600"
+                              : "bg-blue-500 text-black"
+                          }`}
                         >
                           {p.status}
                         </span>
@@ -178,17 +179,16 @@ export default function OfficialDashboard() {
                   ))
                 )}
               </tbody>
-
             </table>
           </div>
 
           <div className="bg-blue-100 p-4 rounded-lg shadow">
             <h2 className="text-lg font-semibold text-blue-800 mb-2">Petitions by Category</h2>
             <div className="h-64">
-              { statsLoader ? (
+              {statsLoader ? (
                 <div className="flex items-center justify-center">
-                        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
+                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
               ) : (
                 <Pie data={pieData} />
               )}
@@ -206,6 +206,37 @@ export default function OfficialDashboard() {
           </ul>
         </div>
       </div>
+
+      {/* ------------------ SIGN OUT MODAL ------------------ */}
+      {showConfirm && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          onClick={() => setShowConfirm(false)}
+        >
+          <div
+            className="w-[400px] bg-white shadow-2xl border border-gray-200 rounded-xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-gray-900 text-lg font-semibold mb-4 text-center">
+              Are you sure you want to sign out?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignout}
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

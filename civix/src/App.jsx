@@ -38,7 +38,7 @@ import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
 import OfficialReports from "./pages/OfficialReports";
 import OfficialPollsPage from "./pages/OfficialPollsPage";
-
+import OfficialPetitionPage from "./components/OfficialPetitionPage";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 
 // Toastify
@@ -90,11 +90,13 @@ export default function App() {
     location.pathname.startsWith("/dashboard/official") ||
     location.pathname.startsWith("/dashboard/citizen") ||
     location.pathname.startsWith("/login") ||
-    location.pathname.startsWith("/forgot-password");
+    location.pathname.startsWith("/forgot-password") ||
+    location.pathname.startsWith("/set-new-password");
 
 
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isLogin = location.pathname.startsWith("/login");
+  const setNewPassword = location.pathname.startsWith("/set-new-password");
 
   // Apply dark mode globally
   React.useEffect(() => {
@@ -130,7 +132,7 @@ export default function App() {
         </nav>
       )}
       <div
-        className={`flex-grow w-full ${isDashboard || isLogin ? "" : "max-w-screen-xl mx-auto"
+        className={`flex-grow w-full ${isDashboard || isLogin || setNewPassword ? "" : "max-w-screen-xl mx-auto"
           }`}
       >
         <Routes>
@@ -237,6 +239,11 @@ export default function App() {
               path="petitions/pending"
               element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
+             <Route
+  path="petitions"
+  element={<OfficialPetitionPage />}
+/>
+
             <Route
               path="petitions/approved"
               element={
