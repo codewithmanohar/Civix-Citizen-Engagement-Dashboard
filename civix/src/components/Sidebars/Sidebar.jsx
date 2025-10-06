@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useLocation,useNavigate } from "react-router-dom";
+import ReactDOM from "react-dom";
+import { Link, useLocation, useNavigate }  from "react-router-dom";
 import {
   Home,
   FileText,
@@ -70,11 +71,10 @@ const Sidebar = () => {
             <Link
               key={to}
               to={to}
-              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
-                isActive
-                  ? "bg-blue-600 text-white font-semibold"
-                  : "text-gray-700 hover:bg-blue-100"
-              }`}
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${isActive
+                ? "bg-blue-600 text-white font-semibold"
+                : "text-gray-700 hover:bg-blue-100"
+                }`}
             >
               <Icon size={18} className={isActive ? "text-white" : "text-gray-500"} />
               {label}
@@ -94,40 +94,37 @@ const Sidebar = () => {
       </div>
 
       {/* Custom Popup */}
-       {showConfirm && (
-        // The z-50 fixed overlay ensures it is on top of and blocks background content.
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-          // This click listener on the overlay captures clicks outside the modal content
-          // and prevents them from reaching elements underneath.
-          onClick={() => setShowConfirm(false)}
-        >
-          {/* Modal Content */}
+      {showConfirm &&
+        ReactDOM.createPortal(
           <div
-            className="w-[400px] bg-white shadow-2xl border border-gray-200 rounded-xl p-6 relative"
-            // This stops click events inside the modal from bubbling up and closing the modal via the overlay's onClick.
-            onClick={(e) => e.stopPropagation()} 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center"
+            onClick={() => setShowConfirm(false)}
           >
-            <p className="text-gray-900 text-lg font-semibold mb-4 text-center">
-              Are you sure you want to sign out?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSignout}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-              >
-                Sign Out
-              </button>
+            <div
+              className="w-[400px] bg-white shadow-2xl border border-gray-200 rounded-xl p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-gray-900 text-lg font-semibold mb-4 text-center">
+                Are you sure you want to sign out?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSignout}
+                  className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body // render outside Sidebar
+        )}
     </div>
   );
 };
