@@ -66,7 +66,7 @@ const [selectedLocation, setSelectedLocation] = useState("All Locations");
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-blue-700">Resolved Petitions</h1>
-          <div className="relative">
+          <div className="relative flex items-center gap-3 ">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
               type="text"

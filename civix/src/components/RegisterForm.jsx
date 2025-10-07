@@ -29,10 +29,10 @@ export default function RegisterForm() {
       toast.error("⚠️ Passwords do not match.");
       return;
     }
-    if (role === "official" && !email.endsWith(".gov.in")) {
-      toast.error("⚠️ Public officials must use a government email.");
-      return;
-    }
+    // if (role === "official" && !email.endsWith(".gov.in")) {
+    //   toast.error("⚠️ Public officials must use a government email.");
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -135,6 +135,7 @@ export default function RegisterForm() {
           Official
         </label>
       </div>
+
 
       <button
         type="submit"

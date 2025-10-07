@@ -103,7 +103,7 @@ const [selectedLocation, setSelectedLocation] = useState("All Locations");
       <div className="w-full max-w-6xl bg-white shadow-md rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-blue-700">Under Review Petitions</h1>
-          <div className="relative">
+          <div className="relative flex items-center gap-3">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
               type="text"
@@ -155,7 +155,7 @@ const [selectedLocation, setSelectedLocation] = useState("All Locations");
                     <td className="p-3">{p.signatureCount}</td>
                     <td className="p-3">{new Date(p.createdAt).toLocaleDateString()}</td>
                     <td className="p-3">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium">
+                      <span className="px-3 py-1 text-nowrap bg-blue-100 text-blue-700 rounded text-sm text-center font-medium">
                         {p.status}
                       </span>
                     </td>
