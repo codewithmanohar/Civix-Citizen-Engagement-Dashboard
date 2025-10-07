@@ -12,7 +12,7 @@ export default function OfficialLayout() {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 min-h-screen">
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto px-6">
           <Outlet /> {/* Render nested routes here */}
         </main>
       </div>

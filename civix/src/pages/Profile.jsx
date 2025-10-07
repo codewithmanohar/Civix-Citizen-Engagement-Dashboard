@@ -63,8 +63,8 @@ const handleSave = async (e) => {
   }, [editing]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex justify-center items-center p-6 ">
-      <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-3xl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex justify-center items-center py-6 ">
+      <div className="bg-white shadow-2xl rounded-3xl px-6 py-10 w-full max-w-3xl">
           {/* Profile Image */}
         <div className="flex flex-col items-center mb-8">
           <img

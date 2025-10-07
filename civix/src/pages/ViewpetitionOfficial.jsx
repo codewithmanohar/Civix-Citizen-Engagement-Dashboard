@@ -65,7 +65,7 @@ const ViewPetitionOfficial = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg mt-10">
+    <div className="max-w-3xl mx-auto px-6 py-6 bg-white shadow rounded-lg mt-10">
       {/* Petition Info */}
       <h1 className="text-3xl font-bold mb-2">{petition.title}</h1>
       <p className="text-gray-600 mb-2">Category: {petition.category}</p>

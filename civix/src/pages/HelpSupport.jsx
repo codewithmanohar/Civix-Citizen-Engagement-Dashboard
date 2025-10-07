@@ -76,8 +76,8 @@ const HelpSupport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 p-6 sm:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-blue-50 py-6 sm:py-8">
+      <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="flex items-center mb-6">
           <HelpCircle size={36} className="text-blue-700 mr-3" />

@@ -261,23 +261,28 @@ autoTable(doc, {
   };
 
   return (
-    <div className="p-6 bg-blue-50 min-h-screen">
+    <div className="py-6 bg-blue-50 min-h-screen">
       {/* Header */}
-      <h1 className="text-3xl font-bold text-blue-900 mb-8">
-        Reports & Analytics
-      </h1>
+      <div className="px-6">
+        <h1 className="text-3xl font-bold text-blue-900 mb-8">
+          Reports & Analytics
+        </h1>
+      </div>
 
       {/* Petition Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+      <div className="px-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         <StatCard label="Total Petitions" value={stats.total} />
         <StatCard label="Under Review" value={stats.under_review} />
         <StatCard label="Active" value={stats.active} />
         <StatCard label="Rejected" value={stats.rejected} />
         <StatCard label="Resolved" value={stats.resolved} />
+        </div>
       </div>
 
       {/* Category Breakdown & Polls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <div className="px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <div className="bg-white p-6 rounded-2xl shadow-md">
           <h2 className="text-lg font-semibold text-blue-800 mb-4">
             Category-wise Breakdown
@@ -341,7 +346,8 @@ autoTable(doc, {
       </div>
 
       {/* Citizen Engagement */}
-      <div className="bg-white p-6 rounded-2xl shadow-md mb-8">
+      <div className="px-6">
+        <div className="bg-white p-6 rounded-2xl shadow-md mb-8">
         <h2 className="text-lg font-semibold text-blue-800 mb-4">
           Citizen Engagement
         </h2>
@@ -353,7 +359,8 @@ autoTable(doc, {
       </div>
 
       {/* Trends */}
-      <div className="bg-white p-6 rounded-2xl shadow-md mb-8">
+      <div className="px-6">
+        <div className="bg-white p-6 rounded-2xl shadow-md mb-8">
         <h2 className="text-lg font-semibold text-blue-800 mb-4">
           Trends & Timeline
         </h2>
@@ -380,10 +387,12 @@ autoTable(doc, {
   </LineChart>
 </ResponsiveContainer>
 
+        </div>
       </div>
 
       {/* Export Buttons */}
-      <div className="flex space-x-4 mt-8">
+      <div className="px-6">
+        <div className="flex space-x-4 mt-8">
         <button
           onClick={handlePreviewPDF}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -402,6 +411,7 @@ autoTable(doc, {
         >
           Download CSV
         </button>
+        </div>
       </div>
 
       {/* PDF Modal */}

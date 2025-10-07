@@ -122,8 +122,8 @@ export default function OfficialDashboard() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-blue-50 p-6">
-      <div className="bg-white p-6 rounded-lg shadow">
+    <div className="w-full min-h-screen bg-blue-50 py-6">
+      <div className="bg-white px-6 py-6 rounded-lg shadow">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {statItems.map((s, i) => (

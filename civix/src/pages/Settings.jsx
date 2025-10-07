@@ -197,15 +197,18 @@ const Settings = () => {
   };
 
   return (
-    <div className="w-full p-6 space-y-8">
+    <div className="w-full py-6 space-y-8">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      <div className="mx-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm px-6 py-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
         <p className="text-gray-600 dark:text-gray-300">Manage your account settings and preferences.</p>
+        </div>
       </div>
 
       {/* Security Settings */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      <div className="mx-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm px-6 py-6">
         <div className="flex items-center mb-6">
           <Shield className="w-6 h-6 text-blue-600 mr-3" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Security Settings</h2>
@@ -311,11 +314,13 @@ const Settings = () => {
             Change Password
           </button>
         </div>
+        </div>
       </div>
 
 
       {/* Privacy & Data */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      <div className="mx-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm px-6 py-6">
         <div className="flex items-center mb-6">
           <Lock className="w-6 h-6 text-blue-600 mr-3" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Privacy & Data</h2>
@@ -387,13 +392,15 @@ const Settings = () => {
             Delete Account
           </button>
         </div>
+        </div>
       </div>
 
 
 
       {/* Role-specific Settings */}
       {userRole === 'official' && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="mx-6">
+          <div className="bg-white rounded-lg shadow-sm px-6 py-6">
           <div className="flex items-center mb-6">
             <Shield className="w-6 h-6 text-blue-600 mr-3" />
             <h2 className="text-xl font-semibold text-gray-900">Official Settings</h2>
@@ -432,6 +439,7 @@ const Settings = () => {
                 placeholder="Enter your jurisdiction"
               />
             </div>
+          </div>
           </div>
         </div>
       )}
