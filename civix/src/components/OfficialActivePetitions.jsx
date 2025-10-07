@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function OfficialActivePetitions({ onApprove }) {
   const [activePetitions, setActivePetition] = useState([]);
@@ -75,6 +77,10 @@ export default function OfficialActivePetitions({ onApprove }) {
 
         // Notify parent (Approved table) to add this petition
         if (onApprove) onApprove({ ...approvedPetition, status: "Active" });
+        toast.success(" Petition has been approved successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       }
     } catch (err) {
       console.error("Error approving petition:", err);
@@ -86,6 +92,11 @@ export default function OfficialActivePetitions({ onApprove }) {
     try {
       await api.put(`/petition/petition/${id}/status`, { status: "Rejected" });
       setActivePetition((prev) => prev.filter((p) => p._id !== id));
+     toast.info("⚠️ Petition has been rejected.", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    
     } catch (err) {
       console.error("Error rejecting petition:", err);
     }
@@ -191,6 +202,8 @@ export default function OfficialActivePetitions({ onApprove }) {
           </table>
         </div>
       </div>
+      <ToastContainer />
+
     </div>
   );
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function OfficialUnderReviewPetitions({ approvedPetitions: dynamicApproved }) {
   const [approvedPetitions, setApprovedPetitions] = useState([]);
@@ -44,6 +46,19 @@ const [selectedLocation, setSelectedLocation] = useState("All Locations");
       await api.put(`/petition/petition/${id}/status`, { status });
       // Remove petition from current Under Review list after status change
       setApprovedPetitions((prev) => prev.filter((p) => p._id !== id));
+     if (status === "Resolved") {
+        toast.success("You have resolved a petition successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      } else if (status === "Rejected") {
+        toast.info("⚠️ You have rejected a petition.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    
+    
     } catch (err) {
       console.error(`Error updating petition ${id} to ${status}:`, err);
     }
@@ -177,6 +192,7 @@ const [selectedLocation, setSelectedLocation] = useState("All Locations");
           </table>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }
