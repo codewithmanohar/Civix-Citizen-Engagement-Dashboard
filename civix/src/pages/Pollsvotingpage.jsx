@@ -224,7 +224,7 @@ const PollVotingPage = () => {
         {hasVoted ? (
           <div className="space-y-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <p className="text-green-700 font-semibold">✓ You have already voted in this poll.</p>
+              <p className="text-green-700 font-semibold">✓ You have voted in this poll.</p>
             </div>
 
             <h3 className="text-lg font-semibold mb-4">Poll Results:</h3>
