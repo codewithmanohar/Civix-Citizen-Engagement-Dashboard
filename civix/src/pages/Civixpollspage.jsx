@@ -1,42 +1,28 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
-import { removeUserVotes } from "../lib/pollService";
 import Loading from "../components/Loaders/Loading";
 
 const CivixPollsPage = () => {
   const navigate = useNavigate();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("all"); // all, mine, closed
+  const [selectedTab, setSelectedTab] = useState("all"); // all, mine, voted
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [locations, setLocations] = useState([]);
 
-
-  const targetUserId = "68cfede308eb217ae39136c4";
-
-  // Get logged-in user info from localStorage
-  const currentUserName = localStorage.getItem("name");
-  const currentUserId = localStorage.getItem("userId"); // We'll need to store this during login
-
-  const tabs = ["all", "mine"];
+  const currentUserId = localStorage.getItem("userId");
+  const tabs = ["all", "mine", "voted"];
 
   const fetchPolls = async (tabType = "all") => {
     setLoading(true);
     try {
       const endpoint = tabType === "mine" ? "/polls/my-polls" : "/polls";
-      console.log('Fetching polls from:', endpoint);
-      const res = await api.get(endpoint, { 
-        headers: { 'Cache-Control': 'no-cache' } 
-      });
-      console.log('API response status:', res.status);
-      console.log('API response headers:', res.headers);
+      const res = await api.get(endpoint, { headers: { 'Cache-Control': 'no-cache' } });
       const data = res.data || [];
-      console.log('Raw poll data from backend:', data.slice(0, 1));
-      console.log('First poll userHasVoted:', data[0]?.userHasVoted);
-      
 
-      // Ensure each poll has updated vote counts
+      // Ensure each poll has updated vote counts and userHasVoted
       const pollsWithUpdatedCounts = await Promise.all(
         data.map(async (poll) => {
           try {
@@ -44,17 +30,16 @@ const CivixPollsPage = () => {
             if (voteResponse.status === 200) {
               const voteData = voteResponse.data;
               const totalVotes = voteData.results.reduce((sum, result) => sum + result.count, 0);
-               const userHasVoted = voteData.userHasVoted || false;
-              return { ...poll, totalResponses: totalVotes , userHasVoted };
+              const userHasVoted = voteData.userHasVoted || false;
+              return { ...poll, totalResponses: totalVotes, userHasVoted };
             }
-          } catch (err) {
-            console.log(`No votes for poll ${poll.title}`);
+          } catch {
+            // No votes yet
           }
           return poll;
         })
       );
 
-      console.log('Polls from backend:', pollsWithUpdatedCounts);
       setPolls(pollsWithUpdatedCounts);
 
       // Extract unique locations dynamically
@@ -76,57 +61,20 @@ const CivixPollsPage = () => {
 
   useEffect(() => {
     window.updatePollVoteStatus = (pollId, hasVoted) => {
-      setPolls(prev => prev.map(poll => 
-        poll._id === pollId ? { ...poll, userHasVoted: hasVoted } : poll
-      ));
+      setPolls(prev => prev.map(poll => poll._id === pollId ? { ...poll, userHasVoted: hasVoted } : poll));
     };
-    
-    return () => {
-      delete window.updatePollVoteStatus;
-    };
+    return () => delete window.updatePollVoteStatus;
   }, []);
 
   useEffect(() => {
-    const handlePollVoted = () => {
-      console.log('Poll voted event received, refreshing polls');
-      fetchPolls(selectedTab);
-    };
-    
+    const handlePollVoted = () => fetchPolls(selectedTab);
     window.addEventListener('pollVoted', handlePollVoted);
     return () => window.removeEventListener('pollVoted', handlePollVoted);
   }, [selectedTab]);
 
-
-
-  // Clear vote tracking when user logs out
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      // Clear any local vote tracking
-      const userId = localStorage.getItem('userId');
-      if (userId) {
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith(`poll_vote_${userId}_`)) {
-            localStorage.removeItem(key);
-          }
-        });
-      }
-    }
-  }, []);
-
-
-
-  // Refresh polls when component becomes visible (e.g., returning from poll creation or voting)
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchPolls(selectedTab);
-    };
-    
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        handleFocus();
-      }
-    };
+    const handleFocus = () => fetchPolls(selectedTab);
+    const handleVisibilityChange = () => { if (!document.hidden) handleFocus(); };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -137,36 +85,20 @@ const CivixPollsPage = () => {
     };
   }, [selectedTab]);
 
-  // Filter polls based on location and closed status (My Polls is handled by backend)
-  const filteredPolls = polls
-    .filter(p => p) // remove null/undefined
-    .filter(p => !p.isClosed)
-    .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation);
-
   const handleVote = (poll) => {
-    console.log('Navigating to poll:', poll._id);
-    console.log('Full navigation path:', `/dashboard/citizen/polls/${poll._id}`);
     navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, returnTo: '/dashboard/citizen/polls' } });
   };
 
-  const handleStatus = (poll) => {
-    navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, viewResults: true, returnTo: '/dashboard/citizen/polls' } });
-  };
+  const filteredPolls = polls
+    .filter(p => p)
+    .filter(p => selectedLocation === "All Locations" || p.targetLocation === selectedLocation)
+    .filter(p => {
+      if (selectedTab === "mine") return p.createdBy?._id === currentUserId;
+      if (selectedTab === "voted") return p.userHasVoted === true;
+      return true; // all polls
+    });
 
-  // Check if user has voted on a poll
-  const hasUserVoted = (poll) => {
-    // Primarily rely on backend userHasVoted field
-    const hasVoted = poll.userHasVoted || false;
-    console.log(`Poll ${poll.title}: userHasVoted=${hasVoted}`);
-    return hasVoted;
-  };
-
-
-
-
-
-
-
+  const hasUserVoted = (poll) => poll.userHasVoted || false;
 
   return (
     <div className="bg-blue-50 flex-grow flex flex-col overflow-hidden w-full">
@@ -182,7 +114,6 @@ const CivixPollsPage = () => {
           </button>
         </div>
 
-
         <div className="flex flex-wrap justify-between items-center gap-4">
           {/* Tabs */}
           <div className="flex gap-2">
@@ -195,10 +126,9 @@ const CivixPollsPage = () => {
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                   }`}
               >
-                {tab === "all" ? "All Polls" : tab === "mine" ? "My Polls" : "Closed Polls"}
+                {tab === "all" ? "All Polls" : tab === "mine" ? "My Polls" : "Voted Polls"}
               </button>
             ))}
-
           </div>
 
           {/* Location Filter */}
@@ -217,73 +147,54 @@ const CivixPollsPage = () => {
         </div>
       </div>
 
-      {
-        loading
-          ? <Loading />
-          : <div>
-            {/* Polls List */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              {filteredPolls.length > 0 ? (
-                <ul className="space-y-4">
-                  {filteredPolls.map(poll => (
-                    <li
-                      key={poll._id}
-                      className="flex justify-between items-center bg-white shadow rounded-lg p-4 border hover:shadow-md transition"
-                    >
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{poll.title}</h3>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses:{" "}
-                          {(poll.totalResponses && poll.totalResponses > 0) ? poll.totalResponses :
-                            (poll.title?.includes('metro') ? 2 :
-                              poll.title?.includes('waste') ? 3 :
-                                poll.title?.includes('speed') ? 1 :
-                                  poll.title === 'My Poll' ? 2 :
-                                    poll.title === 'My poll' ? 0 :
-                                      poll.title?.includes('animals') ? 1 :
-                                        poll.title?.includes('renewable energy source') ? 0 :
-                                          poll.title === 'Renewable energy' ? 0 : 0)}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Location: {poll.targetLocation || "Unknown"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Created By: {poll.createdBy?.name || "Unknown"}
-                        </p>
-                      </div>
-                      <div>
-                        {hasUserVoted(poll) ? (
-                          <button
-                            onClick={() => handleStatus(poll)}
-                            className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[80px]"
-                          >
-                            Status
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleVote(poll)}
-                            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-w-[80px]"
-                          >
-                            Vote Now
-                          </button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="bg-white border rounded-lg shadow p-6 text-center">
-                  <p className="text-gray-500 mb-3">No polls found for this selection.</p>
-                </div>
-              )}
+      {loading ? <Loading /> : (
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          {filteredPolls.length > 0 ? (
+            <ul className="space-y-4">
+              {filteredPolls.map(poll => (
+                <li
+                  key={poll._id}
+                  className="flex justify-between items-center bg-white shadow rounded-lg p-4 border hover:shadow-md transition"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{poll.title}</h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Posted: {new Date(poll.createdAt).toLocaleDateString()} • Responses: {poll.totalResponses || 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Location: {poll.targetLocation || "Unknown"}</p>
+                    <p className="text-xs text-gray-500 mt-1">Created By: {poll.createdBy?.name || "Unknown"}</p>
+                  </div>
+                  <div>
+                    {poll.isClosed ? (
+                      <button className="px-4 py-2 text-sm bg-gray-400 text-white rounded-lg min-w-[80px]" disabled>
+                        Closed
+                      </button>
+                    ) : hasUserVoted(poll) ? (
+                      <button className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[80px]" disabled>
+                        Voted
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleVote(poll)}
+                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-w-[80px]"
+                      >
+                        Vote Now
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="bg-white border rounded-lg shadow p-6 text-center">
+              <p className="text-gray-500 mb-3">No polls found for this selection.</p>
             </div>
-
-            
-          </div>
-      }
-
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 export default CivixPollsPage;
+
