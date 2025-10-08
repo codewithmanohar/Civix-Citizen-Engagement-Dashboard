@@ -1,3 +1,4 @@
+
 // src/App.jsx
 import React, { useState } from "react";
 import {
@@ -8,7 +9,6 @@ import {
 } from "react-router-dom";
 
 import Hero from "./components/Hero";
-//import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
@@ -36,9 +36,6 @@ import CivixPollsPage from "./pages/Civixpollspage";
 import PollCreationPage from "./components/Pollscreation";
 import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
-import OfficialReports from "./pages/OfficialReports";
-import OfficialPollsPage from "./pages/OfficialPollsPage";
-import OfficialPetitionPage from "./components/OfficialPetitionPage";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 
 // Toastify
@@ -51,9 +48,6 @@ export default function App() {
 
   const [approvedPetitions, setApprovedPetitions] = useState([]);
   const [petitions, setPetitions] = useState(petitionsData);
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
-  });
 
   const addToApproved = (petition) =>
     setApprovedPetitions([...approvedPetitions, petition]);
@@ -63,10 +57,10 @@ export default function App() {
       prev.map((petition) =>
         petition.id === id
           ? {
-            ...petition,
-            signatures: petition.signatures + 1,
-            signedBy: [...(petition.signedBy || []), signer],
-          }
+              ...petition,
+              signatures: petition.signatures + 1,
+              signedBy: [...(petition.signedBy || []), signer],
+            }
           : petition
       )
     );
@@ -85,81 +79,46 @@ export default function App() {
   const shouldHideNavbar = hideNavbarPrefixes.some((p) =>
     location.pathname.startsWith(p)
   );
+
   const hideFooterOnHome =
     location.pathname === "/" ||
     location.pathname.startsWith("/dashboard/official") ||
     location.pathname.startsWith("/dashboard/citizen") ||
     location.pathname.startsWith("/login") ||
-    location.pathname.startsWith("/forgot-password") ||
-    location.pathname.startsWith("/set-new-password");
-
+    location.pathname.startsWith("/forgot-password");
 
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isLogin = location.pathname.startsWith("/login");
-  const setNewPassword = location.pathname.startsWith("/set-new-password");
-
-  // Apply dark mode globally
-  React.useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = localStorage.getItem('darkMode') === 'true';
-      setDarkMode(isDark);
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    checkDarkMode();
-    
-    // Listen for storage changes to sync dark mode across tabs
-    window.addEventListener('storage', checkDarkMode);
-    
-    // Check periodically for changes
-    const interval = setInterval(checkDarkMode, 1000);
-    
-    return () => {
-      window.removeEventListener('storage', checkDarkMode);
-      clearInterval(interval);
-    };
-  }, []);
 
   return (
-    <div className={`flex flex-col min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-blue-20'}`}>
-      {location.pathname === "/" && (
-        <nav className="flex justify-between items-center px-10 py-6 text-blue-900">
-          <div className="text-3xl font-extrabold tracking-wide">CIVIX</div>
-        </nav>
-      )}
-      <div
-        className={`flex-grow w-full ${isDashboard || isLogin || setNewPassword ? "" : "max-w-screen-xl mx-auto"
-          }`}
-      >
+    <div className="flex flex-col min-h-screen bg-blue-20">
+      {/* ✅ Removed duplicate CIVIX navbar */}
+
+      <div className="flex-grow w-full">
         <Routes>
+          {/* Polls */}
           <Route path="/polls" element={<CivixPollsPage />} />
           <Route path="/polls/create" element={<PollCreationPage />} />
           <Route path="/polls/:id" element={<PollVotingPage />} />
-          <Route path="/polls/create" element={<PollCreationPage />} />
-          <Route path="/polls/:id" element={<PollVotingPage />} />
+
           {/* Public with AuthRedirect */}
           <Route
             path="/"
             element={
-                <AuthRedirect>
+              <AuthRedirect>
                 <Hero />
-                </AuthRedirect>
+              </AuthRedirect>
             }
           />
           <Route
             path="/login"
             element={
-               
+              <AuthRedirect>
                 <LoginForm
                   onForgotPassword={() => navigate("/forgot-password")}
                   onSwitchToRegister={() => navigate("/register")}
                 />
-                 
-              
+              </AuthRedirect>
             }
           />
           <Route
@@ -173,17 +132,17 @@ export default function App() {
           <Route
             path="/forgot-password"
             element={
-              
+              <AuthRedirect>
                 <ForgotPassword />
-          
+              </AuthRedirect>
             }
           />
           <Route
             path="/set-new-password"
             element={
-              
+              <AuthRedirect>
                 <SetNewPassword />
-             
+              </AuthRedirect>
             }
           />
 
@@ -239,11 +198,6 @@ export default function App() {
               path="petitions/pending"
               element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
-             <Route
-  path="petitions"
-  element={<OfficialPetitionPage />}
-/>
-
             <Route
               path="petitions/approved"
               element={
@@ -258,13 +212,12 @@ export default function App() {
             />
             <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
             <Route path="create-petition" element={<CreatePetition />} />
-            <Route path="polls" element={<OfficialPollsPage />} />
+            <Route path="polls" element={<CivixPollsPage />} />
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<HelpSupport />} />
-            <Route path="reports" element={<OfficialReports />} />
-
+            <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 
@@ -278,3 +231,4 @@ export default function App() {
     </div>
   );
 }
+
