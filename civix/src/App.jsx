@@ -22,6 +22,7 @@ import OfficialActivePetitions from "./components/OfficialActivePetitions";
 import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";
 import OfficialPetitionView from "./components/OfficialPetitionView";
+import OfficialPetitionPage from "./components/OfficialPetitionPage"; // ✅ Corrected import
 import OfficialLayout from "./components/Layouts/OfficialLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import petitionsData from "./components/petitionData";
@@ -87,13 +88,8 @@ export default function App() {
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/forgot-password");
 
-  const isDashboard = location.pathname.startsWith("/dashboard");
-  const isLogin = location.pathname.startsWith("/login");
-
   return (
     <div className="flex flex-col min-h-screen bg-blue-20">
-      {/* ✅ Removed duplicate CIVIX navbar */}
-
       <div className="flex-grow w-full">
         <Routes>
           {/* Polls */}
@@ -194,23 +190,25 @@ export default function App() {
             }
           >
             <Route index element={<OfficialDashboard />} />
+
+            {/* ✅ All Petitions */}
+            <Route path="petitions" element={<OfficialPetitionPage />} />
+
+            {/* Sub-categories */}
             <Route
               path="petitions/pending"
               element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
             <Route
               path="petitions/approved"
-              element={
-                <OfficialUnderReviewPetitions
-                  approvedPetitions={approvedPetitions}
-                />
-              }
+              element={<OfficialUnderReviewPetitions approvedPetitions={approvedPetitions} />}
             />
-            <Route
-              path="petitions/resolved"
-              element={<OfficialResolvedPetitions />}
-            />
+            <Route path="petitions/resolved" element={<OfficialResolvedPetitions />} />
+
+            {/* Detailed View */}
             <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
+
+            {/* Other official pages */}
             <Route path="create-petition" element={<CreatePetition />} />
             <Route path="polls" element={<CivixPollsPage />} />
             <Route path="polls/create" element={<PollCreationPage />} />
@@ -231,4 +229,3 @@ export default function App() {
     </div>
   );
 }
-
