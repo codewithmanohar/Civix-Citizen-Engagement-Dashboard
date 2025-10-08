@@ -179,7 +179,7 @@ const PetitionPage = () => {
       )}
 
       {/* Footer */}
-      <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">
+      {/* <div className="p-6 bg-gray-50 border-t shadow flex-shrink-0">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-xl font-semibold text-gray-800">
             Have an issue that needs attention?
@@ -195,7 +195,7 @@ const PetitionPage = () => {
             Create a Petition
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

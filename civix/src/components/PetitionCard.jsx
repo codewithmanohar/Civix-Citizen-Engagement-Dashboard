@@ -32,7 +32,7 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
   }, [petition._id]);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+    <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 relative">
       <h2 className="text-lg font-semibold mb-2">{petition.title}</h2>
 
       {petition.description && (
@@ -40,11 +40,11 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
       )}
 
       <p className="text-sm text-gray-500 mb-1">Status: {petition.status}</p>
-      <p className="text-sm text-gray-500 mb-3">
+      <p className="text-sm text-gray-500 mb-8">
         Signatures: {signatureCount} / {goal}
       </p>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 absolute bottom-4 right-4 ">
         <button
           onClick={() => navigate(`/dashboard/citizen/view/${petition._id}`)}
           className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"

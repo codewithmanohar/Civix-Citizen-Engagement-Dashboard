@@ -164,13 +164,12 @@ export default function OfficialDashboard() {
                       <td className="p-2">{p.signatures}</td>
                       <td className="p-2">
                         <span
-                          className={`px-2 py-1 rounded text-white text-xs ${
-                            p.status === "Resolved"
+                          className={`px-2 py-1 rounded text-white text-xs ${p.status === "Resolved"
                               ? "bg-green-600"
                               : p.status === "Rejected"
-                              ? "bg-red-600"
-                              : "bg-blue-500 text-black"
-                          }`}
+                                ? "bg-red-600"
+                                : "bg-blue-500 text-black"
+                            }`}
                         >
                           {p.status}
                         </span>
@@ -183,31 +182,68 @@ export default function OfficialDashboard() {
           </div>
 
           <div className="bg-blue-100 p-4 rounded-lg shadow">
-  <h2 className="text-lg font-semibold text-blue-800 mb-2">Petitions by Category</h2>
-  <div className="h-64">
-    {statsLoader ? (
-      <div className="flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    ) : (
-      <div className="flex justify-center items-center h-full">
-        <Pie data={pieData} />
-      </div>
-    )}
-  </div>
-</div>
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">Petitions by Category</h2>
+            <div className="h-64">
+              {statsLoader ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <Pie data={pieData} />
+                </div>
+              )}
+            </div>
+          </div>
 
         </div>
 
         {/* Updates */}
-        <div className="mt-6 bg-blue-50 p-4 rounded-lg shadow">
+        {/* <div className="mt-6 bg-blue-50 p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold text-blue-700 mb-2">Official Updates</h2>
           <ul className="list-disc list-inside text-blue-800">
             {updates.map((u, i) => (
               <li key={i}>{u}</li>
             ))}
           </ul>
+        </div> */}
+        <div className="mt-6 bg-blue-50 p-5 rounded-lg shadow">
+          <h2 className="text-lg font-semibold text-blue-700 mb-3">
+            Dashboard Insights
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-lg shadow border border-blue-100">
+              <h3 className="text-blue-800 font-semibold mb-1">Citizen Engagement</h3>
+              <p className="text-sm text-gray-700">
+                Encourage citizens to submit petitions on key issues. Regular engagement
+                helps identify and resolve community needs faster.
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow border border-blue-100">
+              <h3 className="text-blue-800 font-semibold mb-1">Transparency Goal</h3>
+              <p className="text-sm text-gray-700">
+                Maintain transparent communication. Keep petition statuses updated to
+                build trust between citizens and officials.
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow border border-blue-100">
+              <h3 className="text-blue-800 font-semibold mb-1">Performance Focus</h3>
+              <p className="text-sm text-gray-700">
+                Monitor resolution rates and review pending petitions regularly to
+                improve response efficiency and impact.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 text-sm text-gray-600 italic">
+            💡 Tip: Data-driven insights help make informed civic decisions.
+          </div>
         </div>
+
+
       </div>
 
       {/* ------------------ SIGN OUT MODAL ------------------ */}

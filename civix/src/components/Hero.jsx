@@ -47,9 +47,9 @@ export default function Hero() {
               setShowModal(true);
               setShowForgotPassword(false);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-md text-lg transition duration-300 shadow-md"
+            className="bg-blue-900 hover:bg-blue-900 text-white font-semibold px-6 py-3 rounded-md text-lg transition duration-300 shadow-md"
           >
-            🚀 Get Started
+             Get Started
           </button>
         </div>
 
