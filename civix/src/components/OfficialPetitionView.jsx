@@ -239,6 +239,51 @@ const OfficialPetitionView = () => {
             <p className="text-gray-500 text-sm">No comments yet. Be the first!</p>
           )}
         </div>
+        {/* ---------------- SHARE SECTION ---------------- */}
+      <div>
+        <h2 className="font-semibold mb-2 text-gray-800">Share:</h2>
+        <div className="flex gap-3">
+          {/* Facebook */}
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+              window.location.href
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Facebook
+          </a>
+
+          {/* Twitter */}
+          <a
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+              window.location.href
+            )}&text=${encodeURIComponent(petition.title)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600"
+          >
+            Twitter
+          </a>
+
+          {/* Email */}
+          <a
+            href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
+              "Check out this petition!"
+            )}&body=${encodeURIComponent(
+              (petition.title || "Interesting petition") +
+                " - " +
+                window.location.href
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+          >
+            Email
+          </a>
+        </div>
+        </div>
       </div>
     </div>
   );

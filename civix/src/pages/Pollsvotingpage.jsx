@@ -227,7 +227,7 @@ const PollVotingPage = () => {
               <p className="text-green-700 font-semibold">✓ You have voted in this poll.</p>
             </div>
 
-            <h3 className="text-lg font-semibold mb-4">Poll Results:</h3>
+            <h3 className="text-lg font-semibold mb-4">Poll Results & Live Sentiment Graphs:</h3>
             <div className="space-y-3">
               {poll.options.map(renderBar)}
             </div>
