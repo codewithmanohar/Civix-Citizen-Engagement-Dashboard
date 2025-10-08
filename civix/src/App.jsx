@@ -1,12 +1,7 @@
 
 // src/App.jsx
 import React, { useState } from "react";
-import {
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
 import Hero from "./components/Hero";
 import Footer from "./components/Footer";
@@ -22,7 +17,7 @@ import OfficialActivePetitions from "./components/OfficialActivePetitions";
 import OfficialUnderReviewPetitions from "./components/OfficialUnderReviewPetitions";
 import OfficialResolvedPetitions from "./components/OfficialResolvedPetitions";
 import OfficialPetitionView from "./components/OfficialPetitionView";
-import OfficialPetitionPage from "./components/OfficialPetitionPage"; // ✅ Corrected import
+import OfficialPetitionPage from "./components/OfficialPetitionPage";
 import OfficialLayout from "./components/Layouts/OfficialLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import petitionsData from "./components/petitionData";
@@ -32,8 +27,10 @@ import NotFound from "./pages/NotFoundPage";
 import ViewPetition from "./pages/ViewPetitions";
 import HelpSupport from "./pages/HelpSupport";
 import Reports from "./pages/Reports";
+import OfficialReports from "./pages/OfficialReports"; // ✅ New
 import Settings from "./pages/Settings";
 import CivixPollsPage from "./pages/Civixpollspage";
+import OfficialPollsPage from "./pages/OfficialPollsPage"; // ✅ New
 import PollCreationPage from "./components/Pollscreation";
 import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
@@ -142,7 +139,7 @@ export default function App() {
             }
           />
 
-          {/* Citizen */}
+          {/* Citizen Dashboard */}
           <Route
             path="/dashboard/citizen/*"
             element={
@@ -180,7 +177,7 @@ export default function App() {
             <Route path="reports" element={<Reports />} />
           </Route>
 
-          {/* Official */}
+          {/* Official Dashboard */}
           <Route
             path="/dashboard/official/*"
             element={
@@ -190,32 +187,28 @@ export default function App() {
             }
           >
             <Route index element={<OfficialDashboard />} />
-
-            {/* ✅ All Petitions */}
             <Route path="petitions" element={<OfficialPetitionPage />} />
-
-            {/* Sub-categories */}
             <Route
               path="petitions/pending"
               element={<OfficialActivePetitions addToApproved={addToApproved} />}
             />
             <Route
               path="petitions/approved"
-              element={<OfficialUnderReviewPetitions approvedPetitions={approvedPetitions} />}
+              element={
+                <OfficialUnderReviewPetitions approvedPetitions={approvedPetitions} />
+              }
             />
             <Route path="petitions/resolved" element={<OfficialResolvedPetitions />} />
-
-            {/* Detailed View */}
             <Route path="petitions/view/:id" element={<OfficialPetitionView />} />
 
             {/* Other official pages */}
             <Route path="create-petition" element={<CreatePetition />} />
-            <Route path="polls" element={<CivixPollsPage />} />
+            <Route path="polls" element={<OfficialPollsPage />} /> {/* ✅ Official polls */}
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<HelpSupport />} />
-            <Route path="reports" element={<Reports />} />
+            <Route path="reports" element={<OfficialReports />} /> {/* ✅ Official reports */}
             <Route path="profile" element={<Profile />} />
           </Route>
 
