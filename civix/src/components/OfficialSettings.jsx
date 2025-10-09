@@ -1,61 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import {
-  User,
-  Shield,
-  Bell,
-  Lock,
-  Settings as SettingsIcon,
-  Building,
-  Clock,
-  Users,
-  FileText,
-  BarChart3,
-  Calendar,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Award,
-  Briefcase,
-  Eye,
-  EyeOff,
-  Download,
-  Upload,
-  Trash2
-} from 'lucide-react';
-
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { User, Shield, Eye, EyeOff, Trash2, Globe } from "lucide-react";
+import api from "../lib/api";
 const OfficialSettings = () => {
-  const [activeSection, setActiveSection] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const [isCurrentPasswordValid, setIsCurrentPasswordValid] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
 
-  const [officialData, setOfficialData] = useState({
-    // Personal Information
-    fullName: '',
-    email: '',
-    phone: '',
-    personalWebsite: '',
-    bio: '',
+  const [officialInfo, setOfficialInfo] = useState({
+    department: "",
+    position: "",
+    jurisdiction: ""
+  });
 
-    // Official Information
-    title: '',
-    department: '',
-    jurisdiction: '',
-    officeAddress: '',
-    officePhone: '',
-    officeEmail: '',
-    officeHours: '',
-    yearsInOffice: '',
-    previousPositions: '',
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    // Contact & Availability
-    publicProfile: true,
-    allowDirectContact: true,
-    responseTimeCommitment: '48',
-    meetingAvailability: 'by-appointment',
+  // Validate current password on change
+  const validateCurrentPassword = async (password) => {
+    try {
+      // Replace with actual API call if needed
+      await api.post("/auth/validate-password", { currentPassword: password });
+      setIsCurrentPasswordValid(true);
+    } catch {
+      setIsCurrentPasswordValid(false);
+    }
+  };
 
-    // Security
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  }); \n\n  const [officialPreferences, setOfficialPreferences] = useState({ \n    // Dashboard Preferences\n    defaultView: 'pending-petitions',\n    itemsPerPage: 10,\n    autoRefresh: true,\n    showStatistics: true,\n    compactMode: false,\n    \n    // Workflow Settings\n    autoAssignPetitions: false,\n    requireReviewNotes: true,\n    enableBulkActions: true,\n    showCitizenProfiles: true,\n    \n    // Communication\n    autoResponseEnabled: false,\n    responseTemplate: '',\n    signatureEnabled: true,\n    officialSignature: '',\n    \n    // Reporting\n    weeklyReports: true,\n    monthlyReports: true,\n    performanceMetrics: true,\n    publicReporting: false\n  });\n\n  const [notificationSettings, setNotificationSettings] = useState({\n    // Petition Notifications\n    newPetitions: true,\n    petitionMilestones: true,\n    urgentPetitions: true,\n    petitionDeadlines: true,\n    \n    // Citizen Engagement\n    citizenMessages: true,\n    publicComments: false,\n    meetingRequests: true,\n    followUpReminders: true,\n    \n    // System Notifications\n    systemUpdates: true,\n    maintenanceAlerts: true,\n    securityAlerts: true,\n    \n    // Delivery Methods\n    emailEnabled: true,\n    pushEnabled: true,\n    smsEnabled: false,\n    \n    // Timing\n    immediateAlerts: true,\n    dailyDigest: false,\n    weeklyDigest: true,\n    quietHours: {\n      enabled: true,\n      start: '18:00',\n      end: '08:00'\n    }\n  });\n\n  const [privacySettings, setPrivacySettings] = useState({\n    profileVisibility: 'public',\n    showContactInfo: true,\n    showOfficeHours: true,\n    showResponseTime: true,\n    allowPublicRatings: true,\n    showDecisionHistory: 'summary',\n    dataRetention: '7-years',\n    allowAnalytics: true\n  });\n\n  const [workflowSettings, setWorkflowSettings] = useState({\n    petitionCategories: ['Infrastructure', 'Public Safety', 'Environment', 'Transportation'],\n    priorityLevels: ['Low', 'Medium', 'High', 'Urgent'],\n    statusLabels: ['Under Review', 'In Progress', 'Resolved', 'Rejected'],\n    autoAssignRules: [],\n    escalationRules: [],\n    approvalWorkflow: 'single-approval'\n  });\n\n  useEffect(() => {\n    loadOfficialData();\n  }, []);\n\n  const loadOfficialData = () => {\n    const userData = JSON.parse(localStorage.getItem('officialData') || '{}');\n    const preferences = JSON.parse(localStorage.getItem('officialPreferences') || '{}');\n    \n    setOfficialData(prev => ({ ...prev, ...userData }));\n    setOfficialPreferences(prev => ({ ...prev, ...preferences }));\n  };\n\n  const handleInputChange = (section, field, value) => {\n    switch (section) {\n      case 'profile':\n        setOfficialData(prev => ({ ...prev, [field]: value }));\n        break;\n      case 'preferences':\n        setOfficialPreferences(prev => ({ ...prev, [field]: value }));\n        break;\n      case 'notifications':\n        setNotificationSettings(prev => ({ ...prev, [field]: value }));\n        break;\n      case 'privacy':\n        setPrivacySettings(prev => ({ ...prev, [field]: value }));\n        break;\n      case 'workflow':\n        setWorkflowSettings(prev => ({ ...prev, [field]: value }));\n        break;\n    }\n  };\n\n  const handleSave = (section) => {\n    const data = {\n      profile: officialData,\n      preferences: officialPreferences,\n      notifications: notificationSettings,\n      privacy: privacySettings,\n      workflow: workflowSettings\n    };\n    \n    localStorage.setItem('officialData', JSON.stringify(officialData));\n    localStorage.setItem('officialPreferences', JSON.stringify(officialPreferences));\n    \n    toast.success(`${section} settings saved successfully!`);\n  };\n\n  const sections = [\n    { id: 'profile', label: 'Official Profile', icon: User },\n    { id: 'workflow', label: 'Workflow Settings', icon: SettingsIcon },\n    { id: 'notifications', label: 'Notifications', icon: Bell },\n    { id: 'privacy', label: 'Privacy & Visibility', icon: Lock },\n    { id: 'security', label: 'Security', icon: Shield },\n    { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 }\n  ];\n\n  const renderProfileSection = () => (\n    <div className=\"space-y-8\">\n      {/* Personal Information */}\n      <div>\n        <h3 className=\"text-lg font-semibold text-gray-900 mb-4 flex items-center\">\n          <User className=\"w-5 h-5 mr-2\" />\n          Personal Information\n        </h3>\n        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Full Name *</label>\n            <input\n              type=\"text\"\n              value={officialData.fullName}\n              onChange={(e) => handleInputChange('profile', 'fullName', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Personal Email *</label>\n            <input\n              type=\"email\"\n              value={officialData.email}\n              onChange={(e) => handleInputChange('profile', 'email', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Personal Phone</label>\n            <input\n              type=\"tel\"\n              value={officialData.phone}\n              onChange={(e) => handleInputChange('profile', 'phone', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Personal Website</label>\n            <input\n              type=\"url\"\n              value={officialData.personalWebsite}\n              onChange={(e) => handleInputChange('profile', 'personalWebsite', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n              placeholder=\"https://\"\n            />\n          </div>\n        </div>\n        <div className=\"mt-4\">\n          <label className=\"block text-sm font-medium text-gray-700 mb-2\">Bio</label>\n          <textarea\n            value={officialData.bio}\n            onChange={(e) => handleInputChange('profile', 'bio', e.target.value)}\n            rows={4}\n            className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            placeholder=\"Brief description of your background and experience...\"\n          />\n        </div>\n      </div>\n\n      {/* Official Information */}\n      <div className=\"border-t pt-6\">\n        <h3 className=\"text-lg font-semibold text-gray-900 mb-4 flex items-center\">\n          <Building className=\"w-5 h-5 mr-2\" />\n          Official Information\n        </h3>\n        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Official Title *</label>\n            <input\n              type=\"text\"\n              value={officialData.title}\n              onChange={(e) => handleInputChange('profile', 'title', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n              placeholder=\"e.g., City Council Member, Mayor, Commissioner\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Department/Agency *</label>\n            <input\n              type=\"text\"\n              value={officialData.department}\n              onChange={(e) => handleInputChange('profile', 'department', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Jurisdiction *</label>\n            <input\n              type=\"text\"\n              value={officialData.jurisdiction}\n              onChange={(e) => handleInputChange('profile', 'jurisdiction', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n              placeholder=\"e.g., City of Springfield, County of Madison\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Years in Current Office</label>\n            <input\n              type=\"number\"\n              value={officialData.yearsInOffice}\n              onChange={(e) => handleInputChange('profile', 'yearsInOffice', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Office Address</label>\n            <input\n              type=\"text\"\n              value={officialData.officeAddress}\n              onChange={(e) => handleInputChange('profile', 'officeAddress', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Office Phone</label>\n            <input\n              type=\"tel\"\n              value={officialData.officePhone}\n              onChange={(e) => handleInputChange('profile', 'officePhone', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Office Email</label>\n            <input\n              type=\"email\"\n              value={officialData.officeEmail}\n              onChange={(e) => handleInputChange('profile', 'officeEmail', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            />\n          </div>\n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Office Hours</label>\n            <input\n              type=\"text\"\n              value={officialData.officeHours}\n              onChange={(e) => handleInputChange('profile', 'officeHours', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n              placeholder=\"e.g., Mon-Fri 9:00 AM - 5:00 PM\"\n            />\n          </div>\n        </div>\n      </div>\n\n      {/* Availability Settings */}\n      <div className=\"border-t pt-6\">\n        <h3 className=\"text-lg font-semibold text-gray-900 mb-4 flex items-center\">\n          <Clock className=\"w-5 h-5 mr-2\" />\n          Availability & Contact Settings\n        </h3>\n        <div className=\"space-y-4\">\n          <div className=\"flex items-center justify-between\">\n            <div>\n              <h4 className=\"font-medium text-gray-900\">Public Profile</h4>\n              <p className=\"text-sm text-gray-600\">Make your profile visible to citizens</p>\n            </div>\n            <label className=\"relative inline-flex items-center cursor-pointer\">\n              <input\n                type=\"checkbox\"\n                checked={officialData.publicProfile}\n                onChange={(e) => handleInputChange('profile', 'publicProfile', e.target.checked)}\n                className=\"sr-only peer\"\n              />\n              <div className=\"w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600\"></div>\n            </label>\n          </div>\n          \n          <div className=\"flex items-center justify-between\">\n            <div>\n              <h4 className=\"font-medium text-gray-900\">Allow Direct Contact</h4>\n              <p className=\"text-sm text-gray-600\">Citizens can contact you directly through the platform</p>\n            </div>\n            <label className=\"relative inline-flex items-center cursor-pointer\">\n              <input\n                type=\"checkbox\"\n                checked={officialData.allowDirectContact}\n                onChange={(e) => handleInputChange('profile', 'allowDirectContact', e.target.checked)}\n                className=\"sr-only peer\"\n              />\n              <div className=\"w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600\"></div>\n            </label>\n          </div>\n          \n          <div>\n            <label className=\"block text-sm font-medium text-gray-700 mb-2\">Response Time Commitment (hours)</label>\n            <select\n              value={officialData.responseTimeCommitment}\n              onChange={(e) => handleInputChange('profile', 'responseTimeCommitment', e.target.value)}\n              className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n            >\n              <option value=\"24\">24 hours</option>\n              <option value=\"48\">48 hours</option>\n              <option value=\"72\">72 hours</option>\n              <option value=\"168\">1 week</option>\n            </select>\n          </div>\n        </div>\n      </div>\n\n      <button\n        onClick={() => handleSave('Profile')}\n        className=\"bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors\"\n      >\n        Update Official Profile\n      </button>\n    </div>\n  );\n\n  const renderWorkflowSection = () => (\n    <div className=\"space-y-6\">\n      <h3 className=\"text-lg font-semibold text-gray-900 mb-4\">Workflow & Process Settings</h3>\n      \n      <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">\n        <div>\n          <label className=\"block text-sm font-medium text-gray-700 mb-2\">Default Dashboard View</label>\n          <select\n            value={officialPreferences.defaultView}\n            onChange={(e) => handleInputChange('preferences', 'defaultView', e.target.value)}\n            className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n          >\n            <option value=\"pending-petitions\">Pending Petitions</option>\n            <option value=\"dashboard-overview\">Dashboard Overview</option>\n            <option value=\"recent-activity\">Recent Activity</option>\n            <option value=\"statistics\">Statistics</option>\n          </select>\n        </div>\n        \n        <div>\n          <label className=\"block text-sm font-medium text-gray-700 mb-2\">Items Per Page</label>\n          <select\n            value={officialPreferences.itemsPerPage}\n            onChange={(e) => handleInputChange('preferences', 'itemsPerPage', parseInt(e.target.value))}\n            className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n          >\n            <option value={5}>5</option>\n            <option value={10}>10</option>\n            <option value={25}>25</option>\n            <option value={50}>50</option>\n          </select>\n        </div>\n      </div>\n      \n      <div className=\"space-y-4\">\n        <div className=\"flex items-center justify-between\">\n          <div>\n            <h4 className=\"font-medium text-gray-900\">Auto-refresh Dashboard</h4>\n            <p className=\"text-sm text-gray-600\">Automatically refresh data every 5 minutes</p>\n          </div>\n          <label className=\"relative inline-flex items-center cursor-pointer\">\n            <input\n              type=\"checkbox\"\n              checked={officialPreferences.autoRefresh}\n              onChange={(e) => handleInputChange('preferences', 'autoRefresh', e.target.checked)}\n              className=\"sr-only peer\"\n            />\n            <div className=\"w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600\"></div>\n          </label>\n        </div>\n        \n        <div className=\"flex items-center justify-between\">\n          <div>\n            <h4 className=\"font-medium text-gray-900\">Require Review Notes</h4>\n            <p className=\"text-sm text-gray-600\">Mandatory notes when reviewing petitions</p>\n          </div>\n          <label className=\"relative inline-flex items-center cursor-pointer\">\n            <input\n              type=\"checkbox\"\n              checked={officialPreferences.requireReviewNotes}\n              onChange={(e) => handleInputChange('preferences', 'requireReviewNotes', e.target.checked)}\n              className=\"sr-only peer\"\n            />\n            <div className=\"w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600\"></div>\n          </label>\n        </div>\n        \n        <div className=\"flex items-center justify-between\">\n          <div>\n            <h4 className=\"font-medium text-gray-900\">Enable Bulk Actions</h4>\n            <p className=\"text-sm text-gray-600\">Process multiple petitions at once</p>\n          </div>\n          <label className=\"relative inline-flex items-center cursor-pointer\">\n            <input\n              type=\"checkbox\"\n              checked={officialPreferences.enableBulkActions}\n              onChange={(e) => handleInputChange('preferences', 'enableBulkActions', e.target.checked)}\n              className=\"sr-only peer\"\n            />\n            <div className=\"w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600\"></div>\n          </label>\n        </div>\n      </div>\n      \n      <button\n        onClick={() => handleSave('Workflow')}\n        className=\"bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors\"\n      >\n        Save Workflow Settings\n      </button>\n    </div>\n  );\n\n  return (\n    <div className=\"max-w-6xl mx-auto p-6\">\n      <div className=\"bg-white rounded-lg shadow-sm\">\n        {/* Header */}\n        <div className=\"border-b border-gray-200 p-6\">\n          <h1 className=\"text-3xl font-bold text-gray-900 mb-2\">Official Settings</h1>\n          <p className=\"text-gray-600\">Manage your official profile, workflow preferences, and system settings</p>\n        </div>\n        \n        {/* Navigation */}\n        <div className=\"border-b border-gray-200\">\n          <nav className=\"flex space-x-8 px-6\">\n            {sections.map((section) => {\n              const Icon = section.icon;\n              return (\n                <button\n                  key={section.id}\n                  onClick={() => setActiveSection(section.id)}\n                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${\n                    activeSection === section.id\n                      ? 'border-blue-500 text-blue-600'\n                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'\n                  }`}\n                >\n                  <Icon className=\"w-5 h-5 mr-2\" />\n                  {section.label}\n                </button>\n              );\n            })}\n          </nav>\n        </div>\n        \n        {/* Content */}\n        <div className=\"p-6\">\n          {activeSection === 'profile' && renderProfileSection()}\n          {activeSection === 'workflow' && renderWorkflowSection()}\n          {/* Add other section renderers */}\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default OfficialSettings;
+  const handleOfficialInputChange = (field, value) => {
+    setOfficialInfo(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleChangePassword = async () => {
+  if (!isCurrentPasswordValid) return toast.error("Enter correct current password");
+  if (!formData.newPassword) return toast.error("Enter new password");
+  if (formData.newPassword !== formData.confirmPassword) return toast.error("Passwords do not match");
+  if (formData.newPassword.length < 8) return toast.error("Password must be at least 8 characters long");
+
+  try {
+    // Call your backend API to update password
+    await api.put("/auth/change-password", {
+      currentPassword: formData.currentPassword,
+      newPassword: formData.newPassword
+    });
+
+    toast.success("Password updated successfully!");
+    setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setIsCurrentPasswordValid(false);
+
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Failed to change password");
+  }
+};
+
+
+  const handleDeleteAccount = async () => {
+  if (!deletePassword) return toast.error("Please enter your password");
+
+  try {
+    // Step 1: Validate current password
+    await api.post("/auth/validate-password", { currentPassword: deletePassword });
+
+    // Step 2: Delete account
+    await api.delete("/auth/delete-account");
+// 3. Show success toast
+    toast.success("Account deleted successfully!");
+
+    // 4. Delay redirect so user can see toast
+    setTimeout(() => {
+      localStorage.clear();
+      window.location.href = "/"; // or your home/login page
+    }, 1700); 
+    
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Incorrect password or failed to delete account");
+  }
+};
+
+
+  return (
+    <div className="w-full py-6 space-y-8 px-6 bg-blue-50 dark:bg-gray-900 min-h-screen">
+
+      {/* Official Info */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
+  <div className="flex flex-col mb-4">
+    <div className="flex items-center mb-2">
+      <Shield className="w-6 h-6 text-blue-600 mr-3" />
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Official Settings</h1>
+    </div>
+    <p className="text-gray-600 dark:text-gray-300">
+      Manage your account, security preferences, and official tools.
+    </p>
+  </div>
+</div>
+
+{/* Change Password */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
+        <div className="flex items-center mb-4">
+          <Shield className="w-6 h-6 text-blue-600 mr-3" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Change Password</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Current Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={async (e) => {
+                handleInputChange(e);
+                if (e.target.value) await validateCurrentPassword(e.target.value);
+                else setIsCurrentPasswordValid(false);
+              }}
+              placeholder="Current Password"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                formData.currentPassword && !isCurrentPasswordValid
+                  ? "border-red-300 bg-red-50"
+                  : formData.currentPassword && isCurrentPasswordValid
+                  ? "border-green-300 bg-green-50"
+                  : "border-gray-300"
+              }`}
+            />
+            <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleInputChange}
+              placeholder="New Password"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <button onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+              {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            placeholder="Confirm New Password"
+            className="w-full md:col-span-2 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <button onClick={handleChangePassword} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Update Password
+        </button>
+      </div>
+
+      {/* Official Insights */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-4">
+        <div className="flex items-center mb-4">
+          <Globe className="w-6 h-6 text-blue-600 mr-3" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Official Insights</h2>
+        </div>
+        <div className="text-gray-700 dark:text-gray-300 space-y-2">
+          <p>🌍 Track petitions and community engagement.</p>
+          <p>📊 Monitor activity and decision-making impact.</p>
+          <p>🗳️ Stay informed on public participation and polls.</p>
+        </div>
+      </div>
+
+      {/* Delete Account */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 flex flex-col items-center space-y-4">
+        <button onClick={() => setShowDeleteModal(true)} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <Trash2 className="w-4 h-4 mr-2" /> Delete Account
+        </button>
+      </div>
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Confirm Delete Account</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">Enter your password to permanently delete your account.</p>
+            <input
+              type="password"
+              placeholder="Password"
+              value={deletePassword}
+              onChange={e => setDeletePassword(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 mb-4"
+            />
+            <div className="flex justify-between">
+              <button onClick={handleDeleteAccount} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <Trash2 className="w-4 h-4 mr-2" /> Confirm Delete
+              </button>
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default OfficialSettings;

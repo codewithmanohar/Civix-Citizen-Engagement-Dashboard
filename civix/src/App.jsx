@@ -35,7 +35,7 @@ import PollCreationPage from "./components/Pollscreation";
 import PollVotingPage from "./pages/Pollsvotingpage";
 import Profile from "./pages/Profile";
 import AuthRedirect from "./components/Auth/AuthRedirect";
-
+import OfficialSettings from "./components/OfficialSettings";
 // Toastify
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -206,7 +206,7 @@ export default function App() {
             <Route path="polls" element={<OfficialPollsPage />} /> {/* ✅ Official polls */}
             <Route path="polls/create" element={<PollCreationPage />} />
             <Route path="polls/:id" element={<PollVotingPage />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="settings" element={<OfficialSettings />} />
             <Route path="help" element={<HelpSupport />} />
             <Route path="reports" element={<OfficialReports />} /> {/* ✅ Official reports */}
             <Route path="profile" element={<Profile />} />
