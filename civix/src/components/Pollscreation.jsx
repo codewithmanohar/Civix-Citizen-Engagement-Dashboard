@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
+import { toast } from "react-toastify";
 
 export default function PollCreationPage() {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function PollCreationPage() {
   const [options, setOptions] = useState(["",""]);
   const [targetLocation, setTargetLocation] = useState();
   const [loading, setLoading] = useState(false);
-
+const role = localStorage.getItem("userRole"); 
   const handleOptionChange = (index, value) => {
     const newOptions = [...options];
     newOptions[index] = value;
@@ -25,19 +26,26 @@ export default function PollCreationPage() {
   };
 
   const handleCreatePoll = async () => {
-    if (!title.trim() || options.some((opt) => !opt.trim())) return;
-    setLoading(true);
+  if (!title.trim() || options.some((opt) => !opt.trim())) return;
+  setLoading(true);
 
-    try {
-      await api.post("/polls/create", { title, options, targetLocation });
+  try {
+    await api.post("/polls/create", { title, options, targetLocation });
+    toast.success("Poll created successfully!");
+    
+    if (role === "official") {
+      navigate("/dashboard/official/polls");
+    } else {
       navigate("/dashboard/citizen/polls");
-    } catch (err) {
-      console.error("Error creating poll:", err.response?.data || err.message);
-      alert("Failed to create poll");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("Error creating poll:", err.response?.data || err.message);
+    toast.error("Failed to create poll");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4 bg-gray-50">
