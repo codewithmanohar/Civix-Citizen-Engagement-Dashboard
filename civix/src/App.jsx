@@ -39,6 +39,7 @@ import OfficialSettings from "./components/OfficialSettings";
 // Toastify
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Navbar from "./components/Navbar";
 
 export default function App() {
   const location = useLocation();
@@ -87,6 +88,8 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-blue-20">
+       <Navbar />
+
       <div className="flex-grow w-full">
         <Routes>
           {/* Polls */}

@@ -11,6 +11,9 @@
   /*text-align: center;*/
   text-align: left;
 }
+html {
+  scroll-behavior: smooth;
+}
 
 .logo {
   height: 6em;

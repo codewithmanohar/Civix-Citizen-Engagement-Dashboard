@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
 import girl4 from "../assets/girl4.png";
-import gover from "../assets/gover.png";
+import  gover from "../assets/gover.png";
+import  hero from "../assets/hero.png";
 import AuthModal from "./Auth/AuthModal.jsx";
 
 // ✅ Import lucide-react icons
@@ -12,28 +12,19 @@ export default function Hero() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   return (
-    <div className="bg-blue-50">
+    <div className="bg-blue-150">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white shadow-md w-full">
-        <div className="w-full px-6 py-4 flex items-center justify-between">
-          {/* Logo + Title */}
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-blue-900">Civix</span>
-            <img src={gover} alt="Gov Logo" className="w-8 h-8 object-contain" />
-          </div>
-
-          {/* Links */}
-          <div className="flex items-center gap-6 text-blue-900 font-medium">
-            <a href="#about">About</a>
-            <a href="#how-it-works">How it Works</a>
-          </div>
-        </div>
-      </nav>
+    
 
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row items-center justify-between px-10 py-16 gap-10 w-full">
+      <section
+  id="home"
+  className="flex flex-col md:flex-row items-center justify-center px-10 min-h-screen gap-10 w-full bg-blue-150"
+>
+
+
         {/* Left */}
-        <div className="md:w-1/2 text-left">
+        <div className="md:w-1/2 text-left ml-16 -mt-20">
           <h1 className="text-5xl font-extrabold text-blue-900 leading-tight mb-6">
             Empower Your Community <br /> to Advocate for Change
           </h1>
@@ -56,18 +47,20 @@ export default function Hero() {
         {/* Right */}
         <div className="md:w-1/2 flex justify-center">
           <img
-            src={girl4}
+            src={hero}
             alt="Advocacy illustration"
-            className="max-w-md w-full h-auto rounded-lg"
+            className="w-[100px] md:w-[600px] h-auto rounded-lg"
           />
         </div>
       </section>
 
       {/* About Section */}
       <section
-        id="about"
-        className="py-20 px-6 bg-blue-100 text-center scroll-mt-20 w-full"
-      >
+  id="about"
+  className="py-24 px-6 bg-white text-center w-full min-h-screen"
+>
+
+      
         <h2 className="text-4xl font-bold text-blue-900 mb-6">About Civix</h2>
         <p className="max-w-2xl mx-auto text-gray-700 mb-12">
           Civix helps communities participate in governance with ease and
@@ -172,3 +165,5 @@ export default function Hero() {
     </div>
   );
 }
+
+
