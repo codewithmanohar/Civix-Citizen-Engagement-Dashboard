@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import hero from "../assets/hero.png";
 import AuthModal from "./Auth/AuthModal";
-import HowItWorks from "./HowItWorks";
+import HowItWorks from "./HowitWorks";
 import { motion } from "framer-motion";
 import { FileText, BarChart3, PieChart } from "lucide-react";
+import Footer from "./Footer";
 
 export default function Hero() {
   const [showModal, setShowModal] = useState(false);
@@ -49,12 +50,19 @@ export default function Hero() {
             </button>
 
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="border-2 border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white rounded-full px-8 py-3 transition-all duration-300"
-            >
-              Learn More
-            </motion.button>
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={() => {
+    const element = document.getElementById("how-it-works");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  }}
+  className="border-2 border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white rounded-full px-8 py-3 transition-all duration-300"
+>
+  Learn More
+</motion.button>
+
           </div>
 
           <motion.div
@@ -131,11 +139,10 @@ export default function Hero() {
       </section>
 
       <HowItWorks />
-
-      {/* Footer */}
-      <footer className="bg-blue-900 text-white py-6 text-center w-full">
+ <footer className="bg-blue-900 text-white py-6 text-center w-full">
         <p>© 2025 Civix. All Rights Reserved.</p>
       </footer>
+      
 
       {/* Modal */}
       {showModal && (
