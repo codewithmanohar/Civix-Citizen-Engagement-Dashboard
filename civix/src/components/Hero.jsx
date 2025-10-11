@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import girl4 from "../assets/girl4.png";
-import  gover from "../assets/gover.png";
-import  hero from "../assets/hero.png";
-import AuthModal from "./Auth/AuthModal.jsx";
-
-// ✅ Import lucide-react icons
-import { FileText, BarChart3, PieChart, Edit3, CheckCircle, Activity } from "lucide-react";
+import hero from "../assets/hero.png";
+import AuthModal from "./Auth/AuthModal";
+import HowItWorks from "./HowItWorks";
+import { motion } from "framer-motion";
+import { FileText, BarChart3, PieChart } from "lucide-react";
 
 export default function Hero() {
   const [showModal, setShowModal] = useState(false);
@@ -13,35 +11,71 @@ export default function Hero() {
 
   return (
     <div className="bg-blue-150">
-      {/* Navbar */}
-    
-
       {/* Hero Section */}
       <section
-  id="home"
-  className="flex flex-col md:flex-row items-center justify-center px-10 min-h-screen gap-10 w-full bg-blue-150"
->
-
-
+        id="home"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#E3F2FD] via-[#BBDEFB] to-[#90CAF9]"
+      >
         {/* Left */}
         <div className="md:w-1/2 text-left ml-16 -mt-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="inline-block mb-4 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full"
+          >
+            <span className="text-[#1565C0]">Digital Civic Engagement Platform</span>
+          </motion.div>
+
           <h1 className="text-5xl font-extrabold text-blue-900 leading-tight mb-6">
             Empower Your Community <br /> to Advocate for Change
           </h1>
+
           <p className="text-lg text-gray-700 max-w-xl mb-8">
-            Civix enables citizens to engage in local governance through
-            petitions, polls, and transparent reports. Join the movement and
-            make your voice count.
+            Civix enables citizens to engage in local governance through petitions,
+            polls, and transparent reports. Join the movement and make your voice
+            count.
           </p>
-          <button
-            onClick={() => {
-              setShowModal(true);
-              setShowForgotPassword(false);
-            }}
-            className="bg-blue-900 hover:bg-blue-900 text-white font-semibold px-6 py-3 rounded-md text-lg transition duration-300 shadow-md"
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                setShowModal(true);
+                setShowForgotPassword(false);
+              }}
+              className="bg-blue-900 hover:bg-blue-900 text-white font-semibold px-6 py-3 rounded-md text-lg transition duration-300 shadow-md"
+            >
+              Get Started
+            </button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="border-2 border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white rounded-full px-8 py-3 transition-all duration-300"
+            >
+              Learn More
+            </motion.button>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0"
           >
-             Get Started
-          </button>
+            <div className="text-center lg:text-left">
+              <div className="text-3xl text-[#1565C0]">50</div>
+              <div className="text-sm text-[#546E7A]">Active Users</div>
+            </div>
+            <div className="text-center lg:text-left">
+              <div className="text-3xl text-[#1565C0]">100</div>
+              <div className="text-sm text-[#546E7A]">Petitions</div>
+            </div>
+            <div className="text-center lg:text-left">
+              <div className="text-3xl text-[#1565C0]">150+</div>
+              <div className="text-sm text-[#546E7A]">Cities</div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Right */}
@@ -55,98 +89,48 @@ export default function Hero() {
       </section>
 
       {/* About Section */}
-      <section
-  id="about"
-  className="py-24 px-6 bg-white text-center w-full min-h-screen"
->
-
-      
+      <section id="about" className="py-24 px-6 bg-white text-center w-full min-h-screen">
         <h2 className="text-4xl font-bold text-blue-900 mb-6">About Civix</h2>
         <p className="max-w-2xl mx-auto text-gray-700 mb-12">
-          Civix helps communities participate in governance with ease and
-          transparency. Here’s how we empower you.
+          Civix enables citizens to participate in local governance by creating petitions,
+          voting in polls, and tracking government responses. It promotes transparency,
+          accountability, and community involvement.
         </p>
 
         <div className="grid md:grid-cols-3 gap-10 w-full px-10">
           {/* Petitions */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
+          <div className="bg-white p-8 rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform">
             <FileText className="w-16 h-16 mx-auto mb-6 text-blue-900" />
             <h3 className="text-xl font-bold text-blue-900 mb-4">Petitions</h3>
             <p className="text-gray-600">
-              Create and sign petitions that matter to your community and see
-              real change happen.
+              Raise and sign petitions to voice community concerns. Drive meaningful
+              change in your local area.
             </p>
           </div>
 
           {/* Polls */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
+          <div className="bg-white p-8 rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform">
             <BarChart3 className="w-16 h-16 mx-auto mb-6 text-blue-900" />
             <h3 className="text-xl font-bold text-blue-900 mb-4">Polls</h3>
             <p className="text-gray-600">
-              Participate in polls to voice your opinions and influence
-              governance decisions directly.
+              Participate in public sentiment voting. Share your opinion on issues that
+              matter to your community.
             </p>
           </div>
 
           {/* Reports */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
+          <div className="bg-white p-8 rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform">
             <PieChart className="w-16 h-16 mx-auto mb-6 text-blue-900" />
             <h3 className="text-xl font-bold text-blue-900 mb-4">Reports</h3>
             <p className="text-gray-600">
-              Access transparent reports and track the impact of civic actions
-              in your community.
+              Access transparent reports and track the impact of civic actions in your
+              community.
             </p>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section
-        id="how-it-works"
-        className="py-20 px-6 bg-blue-100 text-center scroll-mt-20 w-full"
-      >
-        <h2 className="text-4xl font-bold text-blue-900 mb-6">How It Works</h2>
-        <p className="max-w-2xl mx-auto text-gray-700 mb-12">
-          We make civic participation simple, effective, and transparent. Here’s
-          how you can get started.
-        </p>
-
-        <div className="grid md:grid-cols-3 gap-10 w-full px-10">
-          {/* Start Petitions */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
-            <Edit3 className="w-16 h-16 mx-auto mb-6 text-blue-900" />
-            <h3 className="text-xl font-bold text-blue-900 mb-4">
-              Start Petitions
-            </h3>
-            <p className="text-gray-600">
-              Raise issues that matter, gather support, and push for action in
-              your community.
-            </p>
-          </div>
-
-          {/* Vote */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
-            <CheckCircle className="w-16 h-16 mx-auto mb-6 text-blue-900" />
-            <h3 className="text-xl font-bold text-blue-900 mb-4">Vote</h3>
-            <p className="text-gray-600">
-              Engage in decision-making by voting on policies and initiatives
-              with transparency.
-            </p>
-          </div>
-
-          {/* Track Progress */}
-          <div className="bg-white p-8 rounded-2xl shadow-md transition transform hover:scale-105 hover:shadow-xl">
-            <Activity className="w-16 h-16 mx-auto mb-6 text-blue-900" />
-            <h3 className="text-xl font-bold text-blue-900 mb-4">
-              Track Progress
-            </h3>
-            <p className="text-gray-600">
-              Follow updates and measure the impact of petitions and polls in
-              your area.
-            </p>
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-6 text-center w-full">
@@ -165,5 +149,3 @@ export default function Hero() {
     </div>
   );
 }
-
-

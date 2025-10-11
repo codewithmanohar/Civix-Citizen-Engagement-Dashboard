@@ -48,7 +48,8 @@ export default function ForgotPassword({ onCancel }) {
           />
           {/* {loading && <p className="text-sm text-blue-900">Sending OTP...</p>} */}
           {loading 
-                ? <p className="text-center bg-blue-900 py-5 rounded-md"><DotsLoader color="bg-white" /></p>
+                ? <div  className="text-center bg-blue-900 py-5 rounded-md">
+                  <DotsLoader color="bg-white" /></div>
                 : <div className="flex gap-2">
             <button
               type="submit"

@@ -5,7 +5,9 @@ import api from "../lib/api"; // axios instance
 import OtpForm from "./Otpform"; // OTP component
 import { Eye, EyeOff } from "lucide-react"; // eye icons
 
-export default function RegisterForm() {
+export default function RegisterForm({ initialRole = "citizen" })
+ {
+  const [role, setRole] = useState(initialRole); 
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -13,7 +15,7 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState(""); // 👈 new state
   const [location, setLocation] = useState("");
-  const [role, setRole] = useState("citizen");
+  //const [role, setRole] = useState("citizen");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

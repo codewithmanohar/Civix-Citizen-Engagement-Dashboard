@@ -88,7 +88,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-blue-20">
-       <Navbar />
+  {!shouldHideNavbar && <Navbar />}  {/* ✅ Hide navbar on non-landing pages */}
 
       <div className="flex-grow w-full">
         <Routes>
