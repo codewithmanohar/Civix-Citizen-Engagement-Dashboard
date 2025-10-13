@@ -155,7 +155,7 @@ const PetitionPage = () => {
       {loading ? (
         <Loading />
       ) : (
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPetitions.map((petition) => (
               <PetitionCard

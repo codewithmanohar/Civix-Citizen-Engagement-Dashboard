@@ -51,7 +51,8 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
         >
           View Details
         </button>
-
+        
+        <div className="relative group">
         <button
           onClick={() =>
             !disableSign && navigate(`/dashboard/citizen/sign/${petition._id}`)
@@ -65,6 +66,22 @@ const PetitionCard = ({ petition, selectedTab, currentUser, mySignedPetitions })
         >
           Sign Petition
         </button>
+        {disableSign && (
+      
+        <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {petition.status === "Resolved"
+          ? "This petition is already resolved"
+          : petition.status === "Rejected"
+          ? "This petition was rejected"
+          : petition.createdBy?._id === userId
+          ? "You can’t sign your own petition"
+          : (mySignedPetitions || []).some((p) => p && p._id === petition._id)
+          ? "You’ve signed this petition"
+          : "Signing not allowed"}
+      </span>
+    )}
+    
+    </div>
       </div>
     </div>
   );
