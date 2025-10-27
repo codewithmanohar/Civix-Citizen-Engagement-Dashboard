@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { signPetition } from "../lib/petitionService";
 
 export default function SignPetition({ onSign }) {
@@ -10,7 +10,7 @@ export default function SignPetition({ onSign }) {
   const [anonymous, setAnonymous] = useState(false);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
-
+const location = useLocation(); 
 const handleSign = async (e) => {
   e.preventDefault();
 
@@ -19,7 +19,14 @@ const handleSign = async (e) => {
 
     if (res) {
       alert("Thank you! You have successfully signed this petition.");
+      const fromDashboard =
+          new URLSearchParams(location.search).get("from") === "Dashboard";
+
+      if (fromDashboard) {
+        navigate("/dashboard/citizen"); // redirect to dashboard ✅
+      } else {
       navigate("/dashboard/citizen/petitions");
+      }
     }
   } catch (error) {
     setError(error.response?.data?.message || "Error signing petition");

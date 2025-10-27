@@ -58,23 +58,41 @@ export default function OfficialDashboard() {
   };
 
   const getRecentPetition = async () => {
-    try {
-      setPetitionLoader(true);
-      const response = await api.get("/dashboard/recent-petitions");
-      setRecentPetition(
-        response.data.recent.map((item) => ({
-          title: item.title,
-          by: item.createdBy?.name || "Unknown",
-          signatures: item.signatures?.length || 0,
-          status: item.status,
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setPetitionLoader(false);
-    }
-  };
+  try {
+    setPetitionLoader(true);
+    const response = await api.get("/dashboard/recent-petitions");
+
+    // Fetch live signature counts in parallel
+    const petitionsWithCounts = await Promise.all(
+      response.data.recent.map(async (item) => {
+        try {
+          const sigRes = await api.get(`/petition/signature/${item._id}`);
+          const total = sigRes.data.total || 0;
+          return {
+            title: item.title,
+            by: item.createdBy?.name || "Unknown",
+            signatures: total,
+            status: item.status,
+          };
+        } catch {
+          return {
+            title: item.title,
+            by: item.createdBy?.name || "Unknown",
+            signatures: 0,
+            status: item.status,
+          };
+        }
+      })
+    );
+
+    setRecentPetition(petitionsWithCounts);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setPetitionLoader(false);
+  }
+};
+
 
   const getPieData = async () => {
     try {

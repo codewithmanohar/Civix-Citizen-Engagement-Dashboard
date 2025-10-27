@@ -99,7 +99,7 @@ export default function App() {
 
           {/* Public with AuthRedirect */}
           <Route
-            path="/"
+          path="/"
             element={
               <AuthRedirect>
                 <Hero />

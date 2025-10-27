@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api"; 
-import { getAllPetitions } from "../lib/petitionService"; 
+import { getAllPetitions,getMySignedPetitions } from "../lib/petitionService"; 
 import PetitionCard from "../components/PetitionCard";
 import DotsLoader from "../components/Loaders/DotsLoader";
 import Loading from "../components/Loaders/Loading";
@@ -16,6 +16,7 @@ const CitizenDashboard = () => {
     location: localStorage.getItem("location") || "Unknown",
   });
   
+const [mySignedPetitions, setMySignedPetitions] = useState([]);
 
   const [petitions, setPetitions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +66,26 @@ const CitizenDashboard = () => {
     localStorage.clear();
     navigate("/");
   };
+
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [allData, signedData] = await Promise.all([
+        getAllPetitions(),
+        getMySignedPetitions(),
+      ]);
+
+      setPetitions(allData || []);
+      setMySignedPetitions(signedData.petitions || []);
+    } catch (err) {
+      console.error("Failed to load petitions:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
 
   // --- Derived Stats ---
   const myPetitions = petitions.filter(p => p.createdBy?._id === userId);
@@ -173,23 +194,24 @@ const activePetitions = petitions.filter((p) => {
             </button>
           ))}
         </div>
-         {loading ? (
+         {loading || mySignedPetitions.length === 0  ? (
   <Loading />
 ) : activePetitions.length === 0 ? (
   <div className="text-center text-blue-700 py-10">
     <p>No petitions found with the current filters.</p>
   </div>
 ) : (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {activePetitions.map((petition) => (
       <PetitionCard
   key={petition._id}
   petition={petition}
   selectedTab="active"   // or any label to indicate this section
   currentUser={user.name}
-  mySignedPetitions={petitions.filter((p) =>
-    p.signatures?.some((s) => s?.userId === localStorage.getItem("userId"))
-  )}
+   mySignedPetitions={mySignedPetitions}
+    onSignClick={() =>
+    navigate(`/dashboard/citizen/sign/${petition._id}?from=Dashboard`)
+  }
 />
 
     ))}
