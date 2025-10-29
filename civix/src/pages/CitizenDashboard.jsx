@@ -176,6 +176,7 @@ const activePetitions = petitions.filter((p) => {
           {[
             "All Categories",
             "Environment",
+            "HealthCare",
             "Infrastructure",
             "Education",
             "Public Safety",
