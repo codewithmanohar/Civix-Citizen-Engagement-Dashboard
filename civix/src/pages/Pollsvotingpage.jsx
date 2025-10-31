@@ -73,10 +73,10 @@ const PollVotingPage = () => {
     if (!selectedOption) return alert("Please select an option!");
 
     try {
-      console.log('Submitting vote for poll:', id, 'option:', selectedOption);
+      // console.log('Submitting vote for poll:', id, 'option:', selectedOption);
       // Submit vote
       const result = await votePoll(id, selectedOption);
-      console.log('Vote submission result:', result);
+      // console.log('Vote submission result:', result);
 
       setHasVoted(true);
       setViewResults(true);

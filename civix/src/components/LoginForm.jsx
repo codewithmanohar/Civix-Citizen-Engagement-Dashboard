@@ -32,7 +32,7 @@ export default function LoginForm({ onForgotPassword, onSwitchToRegister, mode =
         navigate("/dashboard/citizen");
       }
 
-      console.log("Login success:", res.data);
+      // console.log("Login success:", res.data);
     } catch (err) {
       console.error("Login error:", err.response?.data || err.message);
 

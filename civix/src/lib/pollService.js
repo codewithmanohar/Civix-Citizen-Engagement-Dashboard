@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const POLLS_URL = "http://localhost:4000/api/polls";
-const VOTES_URL = "http://localhost:4000/api/vote";
+const POLLS_URL = "https://civix-backend-8k3m.onrender.com/api/polls";
+const VOTES_URL = "https://civix-backend-8k3m.onrender.com/api/vote";
 
 // Get poll by ID
 export const getPollById = async (pollId) => {

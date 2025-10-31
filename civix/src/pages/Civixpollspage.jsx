@@ -25,15 +25,12 @@ const CivixPollsPage = () => {
     setLoading(true);
     try {
       const endpoint = tabType === "mine" ? "/polls/my-polls" : "/polls";
-      console.log('Fetching polls from:', endpoint);
       const res = await api.get(endpoint, { 
         headers: { 'Cache-Control': 'no-cache' } 
       });
-      console.log('API response status:', res.status);
-      console.log('API response headers:', res.headers);
+     
       const data = res.data || [];
-      console.log('Raw poll data from backend:', data.slice(0, 1));
-      console.log('First poll userHasVoted:', data[0]?.userHasVoted);
+      
       
 
       // Ensure each poll has updated vote counts
@@ -54,7 +51,7 @@ const CivixPollsPage = () => {
         })
       );
 
-      console.log('Polls from backend:', pollsWithUpdatedCounts);
+      // console.log('Polls from backend:', pollsWithUpdatedCounts);
       setPolls(pollsWithUpdatedCounts);
 
       // Extract unique locations dynamically
@@ -88,7 +85,7 @@ const CivixPollsPage = () => {
 
   useEffect(() => {
     const handlePollVoted = () => {
-      console.log('Poll voted event received, refreshing polls');
+      // console.log('Poll voted event received, refreshing polls');
       fetchPolls(selectedTab);
     };
     
@@ -149,8 +146,7 @@ const CivixPollsPage = () => {
 
 
   const handleVote = (poll) => {
-    console.log('Navigating to poll:', poll._id);
-    console.log('Full navigation path:', `/dashboard/citizen/polls/${poll._id}`);
+   
     navigate(`/dashboard/citizen/polls/${poll._id}`, { state: { poll, returnTo: '/dashboard/citizen/polls' } });
   };
 
@@ -162,7 +158,7 @@ const CivixPollsPage = () => {
   const hasUserVoted = (poll) => {
     // Primarily rely on backend userHasVoted field
     const hasVoted = poll.userHasVoted || false;
-    console.log(`Poll ${poll.title}: userHasVoted=${hasVoted}`);
+    
     return hasVoted;
   };
 
