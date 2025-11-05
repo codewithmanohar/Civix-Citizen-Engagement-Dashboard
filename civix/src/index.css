@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Subtle sky gradient for the hero section */
+.bg-hero {
+  background: linear-gradient(180deg, #cfeef9 0%, #c7e9f7 35%, #c0e6f6 100%);
+}
+
+/* Reusable buttons */
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold shadow-soft transition;
+}
+.btn-primary {
+  @apply bg-brand-btn text-white hover:opacity-90;
+}
+.btn-outline {
+  @apply border border-brand-btn text-brand-btn bg-white hover:bg-slate-50;
+}
+.btn-signout {
+  @apply bg-brand-btn text-white px-4 py-2 rounded-lg shadow-soft hover:opacity-90 transition;
+}
+.input {
+  @apply w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300;
+}

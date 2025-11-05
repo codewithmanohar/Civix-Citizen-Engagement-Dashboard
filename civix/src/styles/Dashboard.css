@@ -1,0 +1,199 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #eaf6ff;
+  color: #222;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #fff;
+  padding: 20px;
+  width: 300px; /* widened sidebar */
+  flex-shrink: 0; /* prevents shrinking */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.logo .beta {
+  font-size: 14px;
+  color: gray;
+}
+
+/* Profile Card */
+.profile-card {
+  background: #f9fbff;
+  border: 1px solid #d6ebff;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+  width: 100%; /* takes full sidebar width */
+}
+
+.profile-card .avatar {
+  background: #d6ebff;
+  color: #222;
+  font-weight: 700;
+  font-size: 22px;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.profile-card .status {
+  font-size: 14px;
+  color: gray;
+  margin: 5px 0;
+}
+
+/* Menu */
+.menu {
+  list-style: none;
+  flex-grow: 1; /* pushes menu to take remaining space */
+}
+
+.menu li {
+  padding: 12px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.menu li:hover,
+.menu li.active {
+  background: #d6ebff;
+  font-weight: 700;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  min-width: 0; /* prevents unwanted overflow */
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 1rem;
+}
+
+.topbar nav a {
+  margin: 0 12px;
+  text-decoration: none;
+  color: #222;
+  font-weight: 500;
+}
+
+.topbar nav a:hover {
+  text-decoration: underline;
+}
+
+.sign-btn {
+  background: #1e66e5;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Welcome Section */
+.welcome {
+  background: #fff;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #fff;
+  flex: 1;
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card .number {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+/* Active Petitions */
+.active-petitions {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.active-petitions .location {
+  margin: 8px 0 16px;
+}
+
+.categories {
+  margin-bottom: 20px;
+}
+
+.categories button {
+  background: #f0f6ff;
+  border: none;
+  padding: 8px 14px;
+  margin: 4px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.categories button.active {
+  background: #1e66e5;
+  color: #fff;
+}
+
+.no-petitions {
+  text-align: center;
+  padding: 20px;
+  color: gray;
+}
+
+.clear-btn {
+  margin-top: 12px;
+  background: #1e66e5;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
